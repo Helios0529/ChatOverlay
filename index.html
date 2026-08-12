@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FF14 Chat Overlay</title>
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <main id="app">
+    <header class="topbar">
+      <div class="tabs" id="tabs"></div>
+      <div id="status" class="status status-connecting">连接 Overlay…</div>
+      <button id="settingsBtn" class="icon-btn" title="设置">⚙</button>
+    </header>
+
+    <section class="toolbar">
+      <input id="searchInput" type="text" placeholder="搜索当前日期的玩家或聊天内容…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="zh-CN" inputmode="text" enterkeyhint="search" />
+      <div class="date-switcher" aria-label="历史日期切换">
+        <button id="historyPrevDayBtn" class="toolbar-btn date-step-btn" type="button" title="前一天">‹</button>
+        <button id="historyDateBtn" class="toolbar-btn date-toolbar-btn" type="button" title="选择要查看的聊天日期">今天</button>
+        <button id="historyNextDayBtn" class="toolbar-btn date-step-btn" type="button" title="后一天">›</button>
+      </div>
+      <button id="imeSearchBtn" class="toolbar-btn" type="button" title="打开搜索输入窗口；中文需使用原生输入">中文输入</button>
+      <button id="partyHistoryBtn" class="toolbar-btn" type="button" title="查看曾经组队遇到过的玩家">组队记录</button>
+    </section>
+
+    <section id="messages" class="messages" aria-live="polite"></section>
+
+
+    <section id="emptyState" class="empty-state hidden">
+      <div id="emptyTitle" class="empty-title">还没有聊天记录</div>
+      <div id="emptySubtitle" class="empty-subtitle">进入游戏后发送一条聊天消息即可开始记录。</div>
+    </section>
+  </main>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="settings-card">
+      <div class="settings-header settings-main-header">
+        <div>
+          <strong>设置</strong>
+          <span class="settings-header-subtitle">外观、频道与本地数据</span>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="关闭">×</button>
+      </div>
+
+      <section class="settings-section">
+        <div class="settings-section-heading">
+          <strong>外观</strong>
+          <span>调整聊天窗口的显示方式</span>
+        </div>
+
+        <label class="setting-row">
+          <span>字体大小</span>
+          <input id="fontSize" type="range" min="12" max="24" step="1" />
+          <output id="fontSizeValue"></output>
+        </label>
+
+        <label class="setting-row">
+          <span>背景透明度</span>
+          <input id="opacity" type="range" min="20" max="95" step="5" />
+          <output id="opacityValue"></output>
+        </label>
+
+        <div class="setting-row color-row">
+          <span>背景颜色</span>
+          <button id="backgroundColorBtn" class="color-open-btn" type="button">
+            <span id="backgroundColorSwatch" class="color-swatch"></span>
+            <span id="backgroundColorValue">#0D0F14</span>
+          </button>
+        </div>
+
+        <div class="setting-row color-row">
+          <span>字体颜色</span>
+          <button id="fontColorBtn" class="color-open-btn" type="button">
+            <span id="fontColorSwatch" class="color-swatch"></span>
+            <span id="fontColorValue">#FFFFFF</span>
+          </button>
+        </div>
+
+        <label class="setting-row check-row">
+          <span>显示时间</span>
+          <input id="showTime" type="checkbox" />
+        </label>
+      </section>
+
+      <section class="settings-section">
+        <div class="settings-section-heading">
+          <strong>频道</strong>
+          <span>自定义颜色、顶部分类与组合频道</span>
+        </div>
+
+        <div class="setting-row color-row">
+          <span>频道消息颜色</span>
+          <button id="channelColorsBtn" class="color-open-btn" type="button">
+            <span class="multi-color-swatch" aria-hidden="true"></span>
+            <span>单独设置各频道</span>
+          </button>
+        </div>
+
+        <div class="setting-row color-row">
+          <span>顶部分类</span>
+          <button id="topTabsBtn" class="color-open-btn" type="button">
+            <span class="category-manage-icon" aria-hidden="true">↕</span>
+            <span>显示、隐藏与排序</span>
+          </button>
+        </div>
+
+        <div class="setting-row color-row">
+          <span>自定义分组</span>
+          <button id="customCategoriesBtn" class="color-open-btn" type="button">
+            <span class="category-manage-icon" aria-hidden="true">≡</span>
+            <span>管理自定义分组</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="settings-section settings-data-section">
+        <div class="settings-section-heading">
+          <strong>数据</strong>
+          <span>聊天与组队记录保存在本机 OverlayPlugin 浏览器存储中</span>
+        </div>
+        <div class="settings-actions settings-data-actions">
+          <button id="resetInterfaceBtn" type="button">恢复默认界面</button>
+          <button id="clearBtn" type="button" class="danger">清空聊天记录</button>
+        </div>
+      </section>
+
+      <div class="settings-footer">
+        <span>FF14 Chat Overlay</span>
+        <span>v1.0.1</span>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="channelColorsDialog" class="sub-dialog channel-colors-dialog">
+    <div class="sub-card channel-colors-card">
+      <div class="settings-header">
+        <strong>频道消息颜色</strong>
+        <button id="channelColorsDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <p class="sub-note">颜色会应用到频道标签和消息正文；玩家名仍使用统一字体颜色。通讯贝1–8与跨服贝1–8现在都可以分别设置自己的颜色。</p>
+      <div id="channelColorRows" class="channel-color-rows"></div>
+      <div class="dialog-actions">
+        <button id="resetChannelColorsBtn" type="button">恢复频道默认色</button>
+        <button id="channelColorsDoneBtn" class="primary" type="button">完成</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="topTabsDialog" class="sub-dialog top-tabs-dialog">
+    <div class="sub-card top-tabs-card">
+      <div class="settings-header">
+        <strong>顶部分类</strong>
+        <button id="topTabsDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <p class="sub-note">这里只控制顶部标签的显示与顺序，不会删除聊天记录或自定义分组。使用 ↑ / ↓ 调整位置；“移除”只是从顶部隐藏。</p>
+      <div class="top-tabs-section-title">顶部已显示</div>
+      <div id="topTabsVisibleList" class="top-tabs-list"></div>
+      <div class="top-tabs-section-title top-tabs-hidden-title">可添加到顶部</div>
+      <div id="topTabsHiddenList" class="top-tabs-list top-tabs-hidden-list"></div>
+      <div id="topTabsHiddenEmpty" class="top-tabs-empty hidden">所有分类都已经显示在顶部。</div>
+      <div class="dialog-actions">
+        <button id="topTabsResetBtn" type="button">恢复默认顺序</button>
+        <button id="topTabsDoneBtn" class="primary" type="button">完成</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="customCategoriesDialog" class="sub-dialog custom-categories-dialog">
+    <div class="sub-card custom-categories-card">
+      <div class="settings-header">
+        <strong>自定义分组</strong>
+        <button id="customCategoriesDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <p class="sub-note">创建一个自定义分组，并选择它包含哪些聊天频道。创建后可在“顶部分类”中决定是否显示以及放在什么位置。</p>
+      <div id="customCategoryList" class="custom-category-list"></div>
+      <div id="customCategoryEmpty" class="custom-category-empty">还没有自定义分组。</div>
+      <div class="dialog-actions">
+        <button id="customCategoryAddBtn" class="primary" type="button">＋ 新建分组</button>
+        <button id="customCategoriesDoneBtn" type="button">完成</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="customCategoryEditorDialog" class="sub-dialog custom-category-editor-dialog">
+    <div class="sub-card custom-category-editor-card">
+      <div class="settings-header">
+        <strong id="customCategoryEditorTitle">新建自定义分组</strong>
+        <button id="customCategoryEditorClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="category-name-row">
+        <span>分组名称</span>
+        <div class="category-name-input-group">
+          <input id="customCategoryName" type="text" maxlength="12" autocomplete="off" spellcheck="false" placeholder="例如：跨服贝 / 固定队" />
+          <button id="customCategoryNativeInputBtn" class="native-input-btn" type="button" title="调用原生输入窗口">原生输入</button>
+        </div>
+      </div>
+      <div class="custom-category-section-title">显示这些频道</div>
+      <div id="customCategoryChannelOptions" class="custom-category-options"></div>
+      <div id="customCategoryValidation" class="custom-category-validation hidden"></div>
+      <div class="dialog-actions category-editor-actions">
+        <button id="customCategoryDeleteBtn" class="danger-soft hidden" type="button">删除分类</button>
+        <span class="dialog-action-spacer"></span>
+        <button id="customCategoryCancelBtn" type="button">取消</button>
+        <button id="customCategorySaveBtn" class="primary" type="button">保存</button>
+      </div>
+    </div>
+  </dialog>
+
+
+  <section id="partyHistoryPage" class="page-view hidden" aria-label="组队记录">
+    <header class="page-topbar">
+      <button id="partyHistoryBack" class="page-back-btn" type="button">← 返回聊天</button>
+      <div class="page-title-wrap">
+        <strong class="page-title">组队记录</strong>
+        <span id="partyHistoryCount" class="page-count">0 位玩家</span>
+      </div>
+      <span class="page-spacer" aria-hidden="true"></span>
+    </header>
+
+    <nav id="partyHistorySortTabs" class="party-history-subtabs" aria-label="组队记录排序">
+      <button class="party-history-subtab" type="button" data-sort="recent">最近遇到时间</button>
+      <button class="party-history-subtab" type="button" data-sort="count">遇到次数</button>
+      <button class="party-history-subtab" type="button" data-sort="name">玩家昵称</button>
+    </nav>
+
+    <div class="party-page-toolbar">
+      <input id="partyHistorySearch" type="text" placeholder="搜索昵称…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="zh-CN" inputmode="text" />
+      <button id="partyHistoryImeBtn" class="toolbar-btn" type="button" title="使用系统输入窗口搜索中文昵称">中文输入</button>
+    </div>
+
+    <div class="party-history-summary">
+      每次队友从“未在当前小队”进入“当前小队”时记为一次；同一队伍内的刷新、职业变化不会重复计数。
+    </div>
+
+    <div class="party-history-head">
+      <span>玩家</span><span>服务器</span><span>组队次数</span><span>最后组队</span>
+    </div>
+    <div id="partyHistoryList" class="party-history-list"></div>
+    <div id="partyHistoryEmpty" class="party-history-empty hidden">还没有组队记录。进入一个小队后会自动记录。</div>
+  </section>
+
+
+
+  <dialog id="calendarDialog" class="sub-dialog calendar-dialog">
+    <div class="sub-card calendar-card">
+      <div class="settings-header">
+        <strong>聊天日期</strong>
+        <button id="calendarDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="calendar-toolbar">
+        <button id="calendarPrevMonth" class="calendar-nav-btn" type="button" aria-label="上个月">‹</button>
+        <strong id="calendarMonthLabel" class="calendar-month-label"></strong>
+        <button id="calendarNextMonth" class="calendar-nav-btn" type="button" aria-label="下个月">›</button>
+      </div>
+      <div class="calendar-weekdays" aria-hidden="true">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+      <div class="calendar-footer">
+        <span id="calendarDateSummary" class="calendar-date-summary">选择一天查看聊天记录</span>
+        <button id="calendarTodayBtn" class="primary" type="button">回到今天</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="searchDialog" class="sub-dialog search-dialog">
+    <div class="sub-card search-card">
+      <div class="settings-header">
+        <strong>中文搜索</strong>
+        <button id="searchDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <p class="sub-note">Overlay 内无法正常唤起中文输入法，需点击“原生输入”，输入完成后会自动回填到这里。</p>
+      <textarea id="searchImeInput" rows="2" lang="zh-CN" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例如：萌芽池技工大王"></textarea>
+      <div class="dialog-actions">
+        <button id="systemPromptBtn" class="native-input-btn" type="button">原生输入</button>
+        <button id="searchClearBtn" type="button">清空</button>
+        <button id="searchApplyBtn" class="primary" type="button">搜索</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="colorDialog" class="sub-dialog">
+    <div class="sub-card color-picker-card">
+      <div class="settings-header">
+        <strong id="colorDialogTitle">选择颜色</strong>
+        <button id="colorDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <div id="colorPreview" class="color-preview"></div>
+      <div id="colorPresets" class="color-presets" aria-label="常用颜色"></div>
+      <label class="rgb-row"><span>R</span><input id="colorR" type="range" min="0" max="255" step="1"><output id="colorRValue"></output></label>
+      <label class="rgb-row"><span>G</span><input id="colorG" type="range" min="0" max="255" step="1"><output id="colorGValue"></output></label>
+      <label class="rgb-row"><span>B</span><input id="colorB" type="range" min="0" max="255" step="1"><output id="colorBValue"></output></label>
+      <label class="hex-row"><span>HEX</span><input id="colorHex" type="text" maxlength="7" spellcheck="false" value="#FFFFFF"></label>
+      <div class="dialog-actions">
+        <button id="colorCancelBtn" type="button">取消</button>
+        <button id="colorApplyBtn" class="primary" type="button">应用</button>
+      </div>
+    </div>
+  </dialog>
+
+
+  <dialog id="playerDetailDialog" class="sub-dialog player-detail-dialog">
+    <div class="sub-card player-detail-card">
+      <div class="settings-header">
+        <strong id="playerDetailTitle">玩家记录</strong>
+        <button id="playerDetailClose" class="icon-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="player-detail-identity">
+        <span id="playerDetailName" class="player-detail-name"></span>
+        <span id="playerDetailWorld" class="player-detail-world"></span>
+      </div>
+      <div class="player-detail-stats">
+        <div><span>组队次数</span><strong id="playerDetailCount">0</strong></div>
+        <div><span>首次记录</span><strong id="playerDetailFirst">—</strong></div>
+        <div><span>最后组队</span><strong id="playerDetailLast">—</strong></div>
+      </div>
+      <div class="player-detail-section-title">最近组队记录</div>
+      <div id="playerEncounterList" class="player-encounter-list"></div>
+      <div id="playerEncounterEmpty" class="party-history-empty hidden">暂无详细组队时间记录。</div>
+    </div>
+  </dialog>
+
+  <div id="messageContextMenu" class="message-context-menu hidden" role="menu">
+    <button type="button" data-action="copy-message">复制消息</button>
+    <button type="button" data-action="copy-line">复制整行</button>
+    <button type="button" data-action="copy-sender">复制玩家名</button>
+    <button type="button" data-action="player-detail">查看玩家记录</button>
+  </div>
+
+  <div id="copyToast" class="copy-toast hidden" role="status" aria-live="polite">已完成</div>
+
+  <!-- 本地 OverlayPlugin 桥接，仅支持直接在 OverlayPlugin 中运行，不依赖公网。 -->
+  <script src="js/overlay-bridge.js"></script>
+  <script src="js/channels.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/worlds.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/roster.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
