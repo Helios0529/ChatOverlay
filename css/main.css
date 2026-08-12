@@ -3134,3 +3134,14 @@ body.overlay-collapsed .overlay-collapse-btn {
     flex-basis: 24px;
   }
 }
+
+/* V1.1.0 — GitHub Pages / CEF defensive native-button reset.
+   These controls already have custom UI; explicitly disable Chromium native appearance
+   so cached/partial style states do not render white system buttons. */
+.party-history-mode-tab,
+.party-history-subtab,
+.top-tabs-manager-tab {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
