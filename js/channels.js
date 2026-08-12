@@ -81,7 +81,7 @@
     { key: 'novice',   name: '新人频道',   channelKeys: ['novice'] },
     { key: 'emote',    name: '情感动作',   channelKeys: ['emoteC', 'emoteS'] },
     { key: 'pvp',      name: 'PvP',        channelKeys: ['pvp'] },
-    { key: 'echo',     name: 'Echo',       channelKeys: ['echo'] },
+    { key: 'echo',     name: '默语',       channelKeys: ['echo'] },
     { key: 'npc',      name: 'NPC',        channelKeys: ['npc'] },
   ];
 
@@ -126,7 +126,7 @@
     { key: 'novice',   name: '新人频道', defaultColor: '#D7AA6A' },
     { key: 'emote',    name: '情感动作', defaultColor: '#CFA882' },
     { key: 'pvp',      name: 'PvP',      defaultColor: '#E9B174' },
-    { key: 'echo',     name: 'Echo',     defaultColor: '#B8B8B8' },
+    { key: 'echo',     name: '默语',     defaultColor: '#B8B8B8' },
     { key: 'npc',      name: 'NPC',      defaultColor: '#E5D39A' },
   ];
 

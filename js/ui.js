@@ -1861,7 +1861,7 @@
       // ngld/CEF can fail to expose IME composition inside overlay text fields.
       // Keep one overlay dialog, and use Chromium's native prompt as the reliable Chinese IME bridge.
       const current = els.searchImeInput.value || state.query || '';
-      const value = window.prompt('输入要搜索的中文（可使用搜狗输入法）：', current);
+      const value = window.prompt('输入要搜索的内容：', current);
       if (value !== null) {
         els.searchImeInput.value = value;
         setTimeout(() => {
@@ -2019,7 +2019,7 @@
     els.customCategoryAddBtn.addEventListener('click', () => openCustomCategoryEditor(null));
     els.customCategoryNativeInputBtn.addEventListener('click', () => {
       const current = String(els.customCategoryName.value || '').slice(0, 12);
-      const value = window.prompt('输入自定义分组名称（可使用搜狗输入法，最多12个字符）：', current);
+      const value = window.prompt('输入自定义分组名称（最多12个字符）：', current);
       if (value !== null) {
         els.customCategoryName.value = String(value).trim().slice(0, 12);
         showCategoryValidation('');
