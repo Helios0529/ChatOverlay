@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
+  <button id="collapseBtn" class="overlay-collapse-btn" type="button" title="折叠聊天栏" aria-label="折叠聊天栏">‹</button>
   <main id="app">
     <header class="topbar">
       <div class="tabs" id="tabs"></div>
@@ -128,7 +129,7 @@
 
       <div class="settings-footer">
         <span>FF14 Chat Overlay</span>
-        <span>v1.0.1</span>
+        <span>v1.0.2</span>
       </div>
     </form>
   </dialog>
@@ -155,12 +156,24 @@
         <button id="topTabsDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
       </div>
       <p class="sub-note">这里只控制顶部标签的显示与顺序，不会删除聊天记录或自定义分组。使用 ↑ / ↓ 调整位置；“移除”只是从顶部隐藏。</p>
-      <div class="top-tabs-section-title">顶部已显示</div>
-      <div id="topTabsVisibleList" class="top-tabs-list"></div>
-      <div class="top-tabs-section-title top-tabs-hidden-title">可添加到顶部</div>
-      <div id="topTabsHiddenList" class="top-tabs-list top-tabs-hidden-list"></div>
-      <div id="topTabsHiddenEmpty" class="top-tabs-empty hidden">所有分类都已经显示在顶部。</div>
-      <div class="dialog-actions">
+      <nav id="topTabsManagerTabs" class="top-tabs-manager-tabs" aria-label="顶部分类管理视图">
+        <button class="top-tabs-manager-tab active" type="button" data-top-tabs-view="visible" aria-selected="true">
+          <span>顶部已显示</span><span id="topTabsVisibleCount" class="top-tabs-manager-count">0</span>
+        </button>
+        <button class="top-tabs-manager-tab" type="button" data-top-tabs-view="hidden" aria-selected="false">
+          <span>可添加到顶部</span><span id="topTabsHiddenCount" class="top-tabs-manager-count">0</span>
+        </button>
+      </nav>
+      <div class="top-tabs-manager-viewport">
+        <section id="topTabsVisiblePane" class="top-tabs-manager-pane" aria-label="顶部已显示分类">
+          <div id="topTabsVisibleList" class="top-tabs-list"></div>
+        </section>
+        <section id="topTabsHiddenPane" class="top-tabs-manager-pane hidden" aria-label="可添加到顶部的分类">
+          <div id="topTabsHiddenList" class="top-tabs-list top-tabs-hidden-list"></div>
+          <div id="topTabsHiddenEmpty" class="top-tabs-empty hidden">所有分类都已经显示在顶部。</div>
+        </section>
+      </div>
+      <div class="dialog-actions top-tabs-dialog-actions">
         <button id="topTabsResetBtn" type="button">恢复默认顺序</button>
         <button id="topTabsDoneBtn" class="primary" type="button">完成</button>
       </div>
@@ -272,7 +285,7 @@
         <button id="searchDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
       </div>
       <p class="sub-note">Overlay 内无法正常唤起中文输入法，需点击“原生输入”，输入完成后会自动回填到这里。</p>
-      <textarea id="searchImeInput" rows="2" lang="zh-CN" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例如：萌芽池技工大王"></textarea>
+      <textarea id="searchImeInput" rows="2" lang="zh-CN" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例如：萌芽池机工大王"></textarea>
       <div class="dialog-actions">
         <button id="systemPromptBtn" class="native-input-btn" type="button">原生输入</button>
         <button id="searchClearBtn" type="button">清空</button>

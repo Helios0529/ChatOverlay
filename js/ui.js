@@ -28,8 +28,10 @@
   const els = {};
   let actions = {};
   let contextMessage = null;
+  let topTabsManagerView = 'visible';
 
   function initElements() {
+    els.collapseBtn = document.getElementById('collapseBtn');
     els.tabs = document.getElementById('tabs');
     els.messages = document.getElementById('messages');
     els.searchInput = document.getElementById('searchInput');
@@ -117,6 +119,11 @@
     els.topTabsDialogClose = document.getElementById('topTabsDialogClose');
     els.topTabsDoneBtn = document.getElementById('topTabsDoneBtn');
     els.topTabsResetBtn = document.getElementById('topTabsResetBtn');
+    els.topTabsManagerTabs = document.getElementById('topTabsManagerTabs');
+    els.topTabsVisiblePane = document.getElementById('topTabsVisiblePane');
+    els.topTabsHiddenPane = document.getElementById('topTabsHiddenPane');
+    els.topTabsVisibleCount = document.getElementById('topTabsVisibleCount');
+    els.topTabsHiddenCount = document.getElementById('topTabsHiddenCount');
     els.topTabsVisibleList = document.getElementById('topTabsVisibleList');
     els.topTabsHiddenList = document.getElementById('topTabsHiddenList');
     els.topTabsHiddenEmpty = document.getElementById('topTabsHiddenEmpty');
@@ -957,6 +964,24 @@
     return button;
   }
 
+  function setTopTabsManagerView(view, resetScroll = false) {
+    topTabsManagerView = view === 'hidden' ? 'hidden' : 'visible';
+    const showVisible = topTabsManagerView === 'visible';
+    els.topTabsVisiblePane?.classList.toggle('hidden', !showVisible);
+    els.topTabsHiddenPane?.classList.toggle('hidden', showVisible);
+    els.topTabsManagerTabs?.querySelectorAll('[data-top-tabs-view]').forEach((button) => {
+      const active = button.dataset.topTabsView === topTabsManagerView;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    if (resetScroll) {
+      requestAnimationFrame(() => {
+        const list = showVisible ? els.topTabsVisibleList : els.topTabsHiddenList;
+        if (list) list.scrollTop = 0;
+      });
+    }
+  }
+
   function renderTopTabsManager() {
     if (!els.topTabsVisibleList || !els.topTabsHiddenList) return;
     const entries = availableTopTabEntries();
@@ -998,6 +1023,8 @@
 
     els.topTabsHiddenList.replaceChildren();
     const hidden = entries.filter((entry) => !visibleSet.has(entry.token));
+    if (els.topTabsVisibleCount) els.topTabsVisibleCount.textContent = String(visibleTokens.length);
+    if (els.topTabsHiddenCount) els.topTabsHiddenCount.textContent = String(hidden.length);
     els.topTabsHiddenEmpty?.classList.toggle('hidden', hidden.length !== 0);
     for (const entry of hidden) {
       const row = document.createElement('div');
@@ -1018,6 +1045,7 @@
       row.append(marker, info, actionsWrap);
       els.topTabsHiddenList.appendChild(row);
     }
+    setTopTabsManagerView(topTabsManagerView);
   }
 
   function commitTopTabs(next) {
@@ -1186,6 +1214,22 @@
     if (mode) els.status.classList.add(`status-${mode}`);
   }
 
+  function setOverlayCollapsed(collapsed) {
+    const next = Boolean(collapsed);
+    document.body.classList.toggle('overlay-collapsed', next);
+    if (!els.collapseBtn) return;
+    els.collapseBtn.textContent = next ? '›' : '‹';
+    els.collapseBtn.title = next ? '展开聊天栏' : '折叠聊天栏';
+    els.collapseBtn.setAttribute('aria-label', next ? '展开聊天栏' : '折叠聊天栏');
+    els.collapseBtn.setAttribute('aria-expanded', String(!next));
+    if (next) {
+      hideContextMenu();
+      for (const dialog of document.querySelectorAll('dialog[open]')) {
+        try { dialog.close(); } catch (_) { /* ignore */ }
+      }
+    }
+  }
+
   function wireEvents({ onClear, onOpenPartyHistory }) {
     els.historyDateBtn.addEventListener('click', () => openCalendar());
     els.historyPrevDayBtn?.addEventListener('click', () => shiftSelectedDate(-1));
@@ -1324,6 +1368,10 @@
       if (event.key === 'Escape') hideContextMenu();
     });
 
+    els.collapseBtn?.addEventListener('click', () => {
+      setOverlayCollapsed(!document.body.classList.contains('overlay-collapsed'));
+    });
+
     els.tabs?.addEventListener('wheel', (event) => {
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || els.tabs.scrollWidth <= els.tabs.clientWidth) return;
       event.preventDefault();
@@ -1333,8 +1381,14 @@
     els.settingsBtn.addEventListener('click', () => els.settingsDialog.showModal());
 
     els.topTabsBtn.addEventListener('click', () => {
+      topTabsManagerView = 'visible';
       renderTopTabsManager();
       els.topTabsDialog.showModal();
+    });
+    els.topTabsManagerTabs?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-top-tabs-view]');
+      if (!button) return;
+      setTopTabsManagerView(button.dataset.topTabsView, true);
     });
     els.topTabsDialogClose.addEventListener('click', () => els.topTabsDialog.close());
     els.topTabsDoneBtn.addEventListener('click', () => els.topTabsDialog.close());
