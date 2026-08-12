@@ -16,6 +16,15 @@
     [0xE0E5, 5], [0xE0E6, 6], [0xE0E7, 7], [0xE0E8, 8],
   ]);
 
+  // CN ACT alliance/alliance-raid sender prefixes observed in 00 logs.
+  // Confirmed from a real log: U+E072 = alliance subgroup B. The contiguous
+  // U+E071..U+E076 range is handled as A..F so the private-use glyph does not
+  // leak into web fonts as a missing-glyph square.
+  const ALLIANCE_GROUP_ICONS = new Map([
+    [0xE071, 'A'], [0xE072, 'B'], [0xE073, 'C'],
+    [0xE074, 'D'], [0xE075, 'E'], [0xE076, 'F'],
+  ]);
+
   const CROSS_WORLD_ICON = '\uE05D';
 
 
@@ -65,6 +74,24 @@
     }
 
     return { partyOrder, text: value };
+  }
+
+  function extractAllianceGroup(text, group) {
+    let value = stripLeadingWhitespace(text);
+    if (group !== 'alliance' || !value) return { allianceGroup: '', text: value };
+
+    // Alliance chat can prefix the sender with a private-use A..F subgroup glyph.
+    // Strip consecutive copies, preserving the first resolved subgroup label.
+    let allianceGroup = '';
+    while (value) {
+      const first = takeFirstCodePoint(value);
+      const label = ALLIANCE_GROUP_ICONS.get(first.codePoint) || '';
+      if (!label) break;
+      if (!allianceGroup) allianceGroup = label;
+      value = stripLeadingWhitespace(first.rest);
+    }
+
+    return { allianceGroup, text: value };
   }
 
   function splitWorldSuffix(text) {
@@ -117,15 +144,18 @@
   function parseSender(rawSender, group = '') {
     const original = String(rawSender ?? '').trim();
     const orderResult = extractPartyOrder(original, group);
-    const worldResult = splitWorldSuffix(orderResult.text);
+    const allianceResult = extractAllianceGroup(orderResult.text, group);
+    const worldResult = splitWorldSuffix(allianceResult.text);
 
-    // Remove every stray party-order glyph left immediately before the name.
-    // This is intentionally repeated rather than stripping only one character:
-    // some CN logs have been observed to expose the same marker twice.
+    // Remove any stray sender-prefix glyph left immediately before the name.
+    // This is intentionally repeated because some CN log paths can duplicate
+    // the same private-use marker.
     let senderName = worldResult.senderName;
     while (senderName) {
       const first = takeFirstCodePoint(senderName);
-      if (!PARTY_ORDER_ICONS.has(first.codePoint)) break;
+      const isPartyMarker = PARTY_ORDER_ICONS.has(first.codePoint);
+      const isAllianceMarker = ALLIANCE_GROUP_ICONS.has(first.codePoint);
+      if (!isPartyMarker && !isAllianceMarker) break;
       senderName = stripLeadingWhitespace(first.rest);
     }
 
@@ -134,6 +164,7 @@
       senderName,
       senderWorld: worldResult.senderWorld,
       partyOrder: orderResult.partyOrder,
+      allianceGroup: allianceResult.allianceGroup,
     };
   }
 
@@ -172,10 +203,14 @@
       senderName: parsedSender.senderName,
       senderWorld: parsedSender.senderWorld,
       partyOrder: parsedSender.partyOrder,
+      allianceGroup: parsedSender.allianceGroup,
       messageRaw,
       message,
     };
   }
 
-  window.FF14Parser = { parseLogLine, parseSender, normalizeGameText, GAME_TEXT_GLYPH_FALLBACKS, PARTY_ORDER_ICONS, CROSS_WORLD_ICON };
+  window.FF14Parser = {
+    parseLogLine, parseSender, normalizeGameText, GAME_TEXT_GLYPH_FALLBACKS,
+    PARTY_ORDER_ICONS, ALLIANCE_GROUP_ICONS, CROSS_WORLD_ICON
+  };
 })();

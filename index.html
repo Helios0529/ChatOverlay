@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FF14 Chat Overlay By 茉雨</title>
+  <title>FF14 Chat Overlay</title>
   <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
@@ -23,7 +23,7 @@
         <button id="historyNextDayBtn" class="toolbar-btn date-step-btn" type="button" title="后一天">›</button>
       </div>
       <button id="imeSearchBtn" class="toolbar-btn" type="button" title="打开搜索输入窗口；中文需使用原生输入">中文输入</button>
-      <button id="partyHistoryBtn" class="toolbar-btn" type="button" title="查看曾经组队过的玩家">组队记录</button>
+      <button id="partyHistoryBtn" class="toolbar-btn" type="button" title="查看曾经组队遇到过的玩家">组队记录</button>
     </section>
 
     <section id="messages" class="messages" aria-live="polite"></section>
@@ -128,8 +128,8 @@
       </section>
 
       <div class="settings-footer">
-        <span>FF14 Chat Overlay</span>
-        <span>v1.0.5</span>
+        <span>FF14 Chat Overlay By 茉雨</span>
+        <span>v1.1</span>
       </div>
     </form>
   </dialog>
@@ -232,26 +232,96 @@
       <span class="page-spacer" aria-hidden="true"></span>
     </header>
 
-    <nav id="partyHistorySortTabs" class="party-history-subtabs" aria-label="组队记录排序">
-      <button class="party-history-subtab" type="button" data-sort="recent">最近时间</button>
-      <button class="party-history-subtab" type="button" data-sort="count">组队次数</button>
-      <button class="party-history-subtab" type="button" data-sort="name">玩家昵称</button>
+    <nav id="partyHistoryModeTabs" class="party-history-mode-tabs" aria-label="玩家记录视图">
+      <button class="party-history-mode-tab active" type="button" data-party-mode="players" aria-selected="true">玩家记录</button>
+      <button class="party-history-mode-tab" type="button" data-party-mode="daily" aria-selected="false">相遇记录</button>
     </nav>
 
-    <div class="party-page-toolbar">
-      <input id="partyHistorySearch" type="text" placeholder="搜索昵称…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="zh-CN" inputmode="text" />
-      <button id="partyHistoryImeBtn" class="toolbar-btn" type="button" title="使用系统输入窗口搜索中文昵称">中文输入</button>
-    </div>
+    <section id="partyHistoryPlayersPane" class="party-history-mode-pane">
+      <nav id="partyHistorySortTabs" class="party-history-subtabs" aria-label="组队记录排序">
+        <button class="party-history-subtab" type="button" data-sort="recent">最近时间</button>
+        <button class="party-history-subtab" type="button" data-sort="count">组队次数</button>
+        <button class="party-history-subtab" type="button" data-sort="name">玩家昵称</button>
+      </nav>
 
-    <div class="party-history-summary">
-      每次队友从“未在当前小队”进入“当前小队”时记为一次；同一队伍内的刷新、职业变化不会重复计数。
-    </div>
+      <div class="party-page-toolbar">
+        <input id="partyHistorySearch" type="text" placeholder="搜索昵称…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="zh-CN" inputmode="text" />
+        <button id="partyHistoryImeBtn" class="toolbar-btn" type="button" title="使用系统输入窗口搜索中文昵称">中文输入</button>
+      </div>
 
-    <div class="party-history-head">
-      <span>玩家</span><span>服务器</span><span>组队次数</span><span>最后组队</span>
-    </div>
-    <div id="partyHistoryList" class="party-history-list"></div>
-    <div id="partyHistoryEmpty" class="party-history-empty hidden">还没有组队记录。进入一个小队后会自动记录。</div>
+      <div class="party-history-summary">
+        每次队友从“未在当前小队”进入“当前小队”时记为一次；同一队伍内的刷新、职业变化不会重复计数。
+      </div>
+
+      <div class="party-history-head">
+        <span>玩家</span><span>服务器</span><span>组队次数</span><span>最后组队</span>
+      </div>
+      <div id="partyHistoryList" class="party-history-list"></div>
+      <div id="partyHistoryEmpty" class="party-history-empty hidden">还没有组队记录。进入一个小队后会自动记录。</div>
+    </section>
+
+    <section id="partyHistoryDailyPane" class="party-history-mode-pane daily-encounter-pane hidden" aria-label="每日遇到玩家">
+      <section id="dailyEncounterOverview" class="daily-encounter-overview">
+        <div class="daily-encounter-summary">组队成员或聊天频道中的说话人，每位玩家每天只记录一次。点击日期查看当天遇到的玩家。</div>
+
+        <div class="daily-encounter-calendar-shell">
+          <div class="daily-encounter-calendar-toolbar">
+            <button id="dailyEncounterPrevMonth" class="calendar-nav-btn" type="button" aria-label="上个月">‹</button>
+            <strong id="dailyEncounterMonthLabel" class="calendar-month-label"></strong>
+            <button id="dailyEncounterNextMonth" class="calendar-nav-btn" type="button" aria-label="下个月">›</button>
+          </div>
+          <div class="calendar-weekdays daily-encounter-weekdays" aria-hidden="true">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div id="dailyEncounterCalendarGrid" class="calendar-grid daily-encounter-calendar-grid"></div>
+        </div>
+
+        <section class="daily-range-search-card" aria-label="跨时间检索">
+          <div class="daily-range-search-heading">
+            <strong>跨时间检索</strong>
+            <span>按日期范围查找遇到过的玩家；昵称可留空。</span>
+          </div>
+          <div class="daily-range-date-row">
+            <label><span>开始</span><button id="dailyRangeStart" class="range-date-select-btn" type="button" data-value="">选择日期</button></label>
+            <span class="daily-range-separator">—</span>
+            <label><span>结束</span><button id="dailyRangeEnd" class="range-date-select-btn" type="button" data-value="">选择日期</button></label>
+          </div>
+          <div class="daily-range-query-row">
+            <input id="dailyRangeQuery" type="text" placeholder="玩家昵称（可留空）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="zh-CN" inputmode="text" />
+            <button id="dailyRangeNativeInputBtn" class="toolbar-btn" type="button">原生输入</button>
+            <button id="dailyRangeSearchBtn" class="toolbar-btn primary" type="button">检索</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="dailyEncounterDetailPane" class="daily-encounter-detail-pane hidden" aria-label="当天遇到的玩家">
+        <header class="daily-encounter-subpage-header">
+          <button id="dailyEncounterDetailBack" class="page-back-btn" type="button">← 返回月历</button>
+          <div>
+            <strong id="dailyEncounterSelectedDate">今天</strong>
+            <span id="dailyEncounterSelectedCount">0 位玩家</span>
+          </div>
+          <span aria-hidden="true"></span>
+        </header>
+        <div class="daily-encounter-detail-note">按当天首次遇到时间从早到晚排列；同一玩家当天只显示一次。</div>
+        <div id="dailyEncounterPlayerList" class="daily-encounter-player-list"></div>
+        <div id="dailyEncounterEmpty" class="party-history-empty hidden">这一天还没有遇到过其他玩家。</div>
+      </section>
+
+      <section id="dailyEncounterRangePane" class="daily-encounter-range-pane hidden" aria-label="跨时间检索结果">
+        <header class="daily-encounter-subpage-header">
+          <button id="dailyRangeBack" class="page-back-btn" type="button">← 返回月历</button>
+          <div>
+            <strong>跨时间检索</strong>
+            <span id="dailyRangeResultCount">0 条记录</span>
+          </div>
+          <span aria-hidden="true"></span>
+        </header>
+        <div id="dailyRangeResultSummary" class="daily-encounter-detail-note"></div>
+        <div id="dailyRangeResultList" class="daily-range-result-list"></div>
+        <div id="dailyRangeEmpty" class="party-history-empty hidden">这个时间范围内没有找到符合条件的玩家。</div>
+      </section>
+    </section>
   </section>
 
 
@@ -262,18 +332,44 @@
         <strong>聊天日期</strong>
         <button id="calendarDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
       </div>
-      <div class="calendar-toolbar">
-        <button id="calendarPrevMonth" class="calendar-nav-btn" type="button" aria-label="上个月">‹</button>
-        <strong id="calendarMonthLabel" class="calendar-month-label"></strong>
-        <button id="calendarNextMonth" class="calendar-nav-btn" type="button" aria-label="下个月">›</button>
+      <div class="calendar-scroll-area">
+        <div class="calendar-toolbar">
+          <button id="calendarPrevMonth" class="calendar-nav-btn" type="button" aria-label="上个月">‹</button>
+          <strong id="calendarMonthLabel" class="calendar-month-label"></strong>
+          <button id="calendarNextMonth" class="calendar-nav-btn" type="button" aria-label="下个月">›</button>
+        </div>
+        <div class="calendar-weekdays" aria-hidden="true">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div class="calendar-footer">
+          <span id="calendarDateSummary" class="calendar-date-summary">选择一天查看聊天记录</span>
+          <button id="calendarTodayBtn" class="primary" type="button">回到今天</button>
+        </div>
       </div>
-      <div class="calendar-weekdays" aria-hidden="true">
-        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+    </div>
+  </dialog>
+
+  <dialog id="rangeDateDialog" class="sub-dialog range-date-dialog">
+    <div class="sub-card range-date-card">
+      <div class="settings-header">
+        <strong id="rangeDateDialogTitle">选择日期</strong>
+        <button id="rangeDateDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
       </div>
-      <div id="calendarGrid" class="calendar-grid"></div>
-      <div class="calendar-footer">
-        <span id="calendarDateSummary" class="calendar-date-summary">选择一天查看聊天记录</span>
-        <button id="calendarTodayBtn" class="primary" type="button">回到今天</button>
+      <div class="calendar-scroll-area">
+        <div class="calendar-toolbar">
+          <button id="rangeDatePrevMonth" class="calendar-nav-btn" type="button" aria-label="上个月">‹</button>
+          <strong id="rangeDateMonthLabel" class="calendar-month-label"></strong>
+          <button id="rangeDateNextMonth" class="calendar-nav-btn" type="button" aria-label="下个月">›</button>
+        </div>
+        <div class="calendar-weekdays" aria-hidden="true">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        </div>
+        <div id="rangeDateCalendarGrid" class="calendar-grid"></div>
+        <div class="calendar-footer">
+          <span id="rangeDateSummary" class="calendar-date-summary">点击日期完成选择</span>
+          <button id="rangeDateTodayBtn" class="primary" type="button">今天</button>
+        </div>
       </div>
     </div>
   </dialog>
@@ -284,7 +380,7 @@
         <strong>中文搜索</strong>
         <button id="searchDialogClose" class="icon-btn" type="button" aria-label="关闭">×</button>
       </div>
-      <p class="sub-note">Overlay 内无法正常唤起中文输入法，需点击“原生输入”，输入完成后会自动回填到这里。</p>
+      <p class="sub-note">Overlay 内无法正常唤起中文输入法，需点击“原生输入”，输入完成后会回填到这里。</p>
       <textarea id="searchImeInput" rows="2" lang="zh-CN" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例如：萌芽池机工大王"></textarea>
       <div class="dialog-actions">
         <button id="systemPromptBtn" class="native-input-btn" type="button">原生输入</button>
@@ -329,8 +425,24 @@
         <div><span>首次记录</span><strong id="playerDetailFirst">—</strong></div>
         <div><span>最后组队</span><strong id="playerDetailLast">—</strong></div>
       </div>
-      <div class="player-detail-section-title">最近组队记录</div>
-      <div id="playerEncounterList" class="player-encounter-list"></div>
+      <div class="player-detail-section-title player-calendar-title">相遇日历</div>
+      <div class="player-mini-calendar" aria-label="玩家相遇日历">
+        <div class="player-mini-calendar-toolbar">
+          <button id="playerCalendarPrevMonth" class="calendar-nav-btn" type="button" aria-label="上个月">‹</button>
+          <strong id="playerCalendarMonthLabel" class="calendar-month-label"></strong>
+          <button id="playerCalendarNextMonth" class="calendar-nav-btn" type="button" aria-label="下个月">›</button>
+        </div>
+        <div class="calendar-weekdays player-mini-calendar-weekdays" aria-hidden="true">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        </div>
+        <div id="playerCalendarGrid" class="calendar-grid player-mini-calendar-grid"></div>
+        <div class="player-calendar-legend">
+          <span><i class="player-calendar-legend-dot met"></i>遇到过 / 组队过</span>
+          <span><i class="player-calendar-legend-dot"></i>无记录</span>
+        </div>
+      </div>
+      <div class="player-detail-section-title player-encounter-title"><span>最近组队记录</span><span>时间 · 相遇地点</span></div>
+      <div id="playerEncounterList" class="player-encounter-list" tabindex="0" aria-label="最近组队记录，可滚动"></div>
       <div id="playerEncounterEmpty" class="party-history-empty hidden">暂无详细组队时间记录。</div>
     </div>
   </dialog>
@@ -347,6 +459,7 @@
   <!-- 本地 OverlayPlugin 桥接，仅支持直接在 OverlayPlugin 中运行，不依赖公网。 -->
   <script src="js/overlay-bridge.js"></script>
   <script src="js/channels.js"></script>
+  <script src="js/zones.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/worlds.js"></script>
   <script src="js/parser.js"></script>

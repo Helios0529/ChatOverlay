@@ -7,6 +7,23 @@
     query: '',
     partyHistoryRecords: [],
     partyHistoryQuery: '',
+    partyHistoryMode: 'players',
+    dailyEncounterYear: 0,
+    dailyEncounterMonth: 0,
+    dailyEncounterDate: '',
+    dailyEncounterCounts: {},
+    dailyEncounterPlayers: [],
+    dailyEncounterSubview: 'overview',
+    dailyRangeResults: [],
+    dailyRangeStart: '',
+    dailyRangeEnd: '',
+    dailyRangeQuery: '',
+    rangeDateTarget: 'start',
+    rangeDateYear: 0,
+    rangeDateMonth: 0,
+    playerDetailDailyEncounters: [],
+    playerCalendarYear: 0,
+    playerCalendarMonth: 0,
     selectedDate: '',
     followToday: true,
     calendarYear: 0,
@@ -64,9 +81,43 @@
     els.partyHistoryCount = document.getElementById('partyHistoryCount');
     els.partyHistorySearch = document.getElementById('partyHistorySearch');
     els.partyHistoryImeBtn = document.getElementById('partyHistoryImeBtn');
+    els.partyHistoryModeTabs = document.getElementById('partyHistoryModeTabs');
+    els.partyHistoryPlayersPane = document.getElementById('partyHistoryPlayersPane');
+    els.partyHistoryDailyPane = document.getElementById('partyHistoryDailyPane');
     els.partyHistorySortTabs = document.getElementById('partyHistorySortTabs');
     els.partyHistoryList = document.getElementById('partyHistoryList');
     els.partyHistoryEmpty = document.getElementById('partyHistoryEmpty');
+    els.dailyEncounterOverview = document.getElementById('dailyEncounterOverview');
+    els.dailyEncounterPrevMonth = document.getElementById('dailyEncounterPrevMonth');
+    els.dailyEncounterNextMonth = document.getElementById('dailyEncounterNextMonth');
+    els.dailyEncounterMonthLabel = document.getElementById('dailyEncounterMonthLabel');
+    els.dailyEncounterCalendarGrid = document.getElementById('dailyEncounterCalendarGrid');
+    els.dailyEncounterDetailPane = document.getElementById('dailyEncounterDetailPane');
+    els.dailyEncounterDetailBack = document.getElementById('dailyEncounterDetailBack');
+    els.dailyEncounterSelectedDate = document.getElementById('dailyEncounterSelectedDate');
+    els.dailyEncounterSelectedCount = document.getElementById('dailyEncounterSelectedCount');
+    els.dailyEncounterPlayerList = document.getElementById('dailyEncounterPlayerList');
+    els.dailyEncounterEmpty = document.getElementById('dailyEncounterEmpty');
+    els.dailyRangeStart = document.getElementById('dailyRangeStart');
+    els.dailyRangeEnd = document.getElementById('dailyRangeEnd');
+    els.dailyRangeQuery = document.getElementById('dailyRangeQuery');
+    els.dailyRangeNativeInputBtn = document.getElementById('dailyRangeNativeInputBtn');
+    els.dailyRangeSearchBtn = document.getElementById('dailyRangeSearchBtn');
+    els.rangeDateDialog = document.getElementById('rangeDateDialog');
+    els.rangeDateDialogTitle = document.getElementById('rangeDateDialogTitle');
+    els.rangeDateDialogClose = document.getElementById('rangeDateDialogClose');
+    els.rangeDatePrevMonth = document.getElementById('rangeDatePrevMonth');
+    els.rangeDateNextMonth = document.getElementById('rangeDateNextMonth');
+    els.rangeDateMonthLabel = document.getElementById('rangeDateMonthLabel');
+    els.rangeDateCalendarGrid = document.getElementById('rangeDateCalendarGrid');
+    els.rangeDateSummary = document.getElementById('rangeDateSummary');
+    els.rangeDateTodayBtn = document.getElementById('rangeDateTodayBtn');
+    els.dailyEncounterRangePane = document.getElementById('dailyEncounterRangePane');
+    els.dailyRangeBack = document.getElementById('dailyRangeBack');
+    els.dailyRangeResultCount = document.getElementById('dailyRangeResultCount');
+    els.dailyRangeResultSummary = document.getElementById('dailyRangeResultSummary');
+    els.dailyRangeResultList = document.getElementById('dailyRangeResultList');
+    els.dailyRangeEmpty = document.getElementById('dailyRangeEmpty');
     els.copyToast = document.getElementById('copyToast');
     els.playerDetailDialog = document.getElementById('playerDetailDialog');
     els.playerDetailTitle = document.getElementById('playerDetailTitle');
@@ -76,6 +127,10 @@
     els.playerDetailCount = document.getElementById('playerDetailCount');
     els.playerDetailFirst = document.getElementById('playerDetailFirst');
     els.playerDetailLast = document.getElementById('playerDetailLast');
+    els.playerCalendarPrevMonth = document.getElementById('playerCalendarPrevMonth');
+    els.playerCalendarNextMonth = document.getElementById('playerCalendarNextMonth');
+    els.playerCalendarMonthLabel = document.getElementById('playerCalendarMonthLabel');
+    els.playerCalendarGrid = document.getElementById('playerCalendarGrid');
     els.playerEncounterList = document.getElementById('playerEncounterList');
     els.playerEncounterEmpty = document.getElementById('playerEncounterEmpty');
     els.messageContextMenu = document.getElementById('messageContextMenu');
@@ -353,6 +408,7 @@
       senderName: hasRaw ? parsed.senderName : (item.senderName || parsed.senderName),
       senderWorld: item.senderWorld || parsed.senderWorld,
       partyOrder: parsed.partyOrder ?? item.partyOrder ?? null,
+      allianceGroup: parsed.allianceGroup || item.allianceGroup || '',
       sender: hasRaw
         ? (parsed.senderName || item.sender || '')
         : (item.senderName || parsed.senderName || item.sender || ''),
@@ -472,6 +528,7 @@
       const circled = ['', '①','②','③','④','⑤','⑥','⑦','⑧'];
       who += circled[item.partyOrder] || String(item.partyOrder);
     }
+    if (item.allianceGroup) who += item.allianceGroup;
     who += item.senderName || item.sender || '';
     if (item.senderWorld) who += ` ${item.senderWorld}`;
     if (who) parts.push(who);
@@ -541,6 +598,13 @@
         const circled = ['', '①','②','③','④','⑤','⑥','⑦','⑧'];
         order.textContent = circled[item.partyOrder] || String(item.partyOrder);
         sender.appendChild(order);
+      }
+
+      if (item.allianceGroup) {
+        const alliance = document.createElement('span');
+        alliance.className = 'alliance-order';
+        alliance.textContent = item.allianceGroup;
+        sender.appendChild(alliance);
       }
 
       const name = document.createElement('span');
@@ -884,6 +948,9 @@
 
       const name = document.createElement('span');
       name.className = 'party-history-name';
+      const encounterCount = Math.max(0, Number(item.encounterCount) || 0);
+      if (encounterCount >= 50) name.classList.add('encounter-tier-gold');
+      else if (encounterCount >= 10) name.classList.add('encounter-tier-green');
       name.textContent = item.name || '';
 
       const world = document.createElement('span');
@@ -906,10 +973,431 @@
     }
   }
 
+  function updatePartyHistoryModeTabs() {
+    const mode = state.partyHistoryMode === 'daily' ? 'daily' : 'players';
+    els.partyHistoryModeTabs?.querySelectorAll('[data-party-mode]').forEach((button) => {
+      const active = button.dataset.partyMode === mode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    els.partyHistoryPlayersPane?.classList.toggle('hidden', mode !== 'players');
+    els.partyHistoryDailyPane?.classList.toggle('hidden', mode !== 'daily');
+    if (mode === 'daily') updateDailyEncounterSubview();
+  }
+
+  function setDailyEncounterMonthFromDate(dateKey) {
+    const d = parseDateKey(dateKey) || new Date();
+    state.dailyEncounterYear = d.getFullYear();
+    state.dailyEncounterMonth = d.getMonth();
+  }
+
+  function dailyEncounterMonthIsToday() {
+    const now = new Date();
+    return state.dailyEncounterYear === now.getFullYear() && state.dailyEncounterMonth === now.getMonth();
+  }
+
+  function defaultDailyRange() {
+    const end = parseDateKey(todayDateKey()) || new Date();
+    const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 6, 12, 0, 0);
+    return {
+      start: localDateKey(start),
+      end: todayDateKey(),
+    };
+  }
+
+  function formatRangeDateButton(dateKey) {
+    const d = parseDateKey(dateKey);
+    if (!d) return '选择日期';
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  }
+
+  function setRangeDateButton(button, dateKey) {
+    if (!button) return;
+    const key = parseDateKey(dateKey) ? dateKey : '';
+    button.dataset.value = key;
+    button.textContent = key ? formatRangeDateButton(key) : '选择日期';
+    button.title = key ? `当前日期：${formatRangeDateButton(key)}；点击重新选择` : '点击选择日期';
+  }
+
+  function getRangeDateButtonValue(button) {
+    return String(button?.dataset?.value || '').trim();
+  }
+
+  function ensureDailyRangeInputs() {
+    const defaults = defaultDailyRange();
+    state.dailyRangeStart = state.dailyRangeStart || defaults.start;
+    state.dailyRangeEnd = state.dailyRangeEnd || defaults.end;
+    setRangeDateButton(els.dailyRangeStart, state.dailyRangeStart);
+    setRangeDateButton(els.dailyRangeEnd, state.dailyRangeEnd);
+    if (els.dailyRangeQuery && els.dailyRangeQuery.value !== state.dailyRangeQuery) els.dailyRangeQuery.value = state.dailyRangeQuery;
+  }
+
+  function currentRangeDateKey() {
+    return state.rangeDateTarget === 'end' ? state.dailyRangeEnd : state.dailyRangeStart;
+  }
+
+  function setRangeDatePickerMonthFromDate(dateKey) {
+    const d = parseDateKey(dateKey) || new Date();
+    state.rangeDateYear = d.getFullYear();
+    state.rangeDateMonth = d.getMonth();
+  }
+
+  function rangeDatePickerMonthIsToday() {
+    const now = new Date();
+    return state.rangeDateYear === now.getFullYear() && state.rangeDateMonth === now.getMonth();
+  }
+
+  function renderRangeDatePicker() {
+    if (!els.rangeDateCalendarGrid) return;
+    const year = state.rangeDateYear;
+    const month = state.rangeDateMonth;
+    const first = new Date(year, month, 1, 12, 0, 0);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const mondayOffset = (first.getDay() + 6) % 7;
+    const todayKey = todayDateKey();
+    const selectedKey = currentRangeDateKey();
+
+    if (els.rangeDateMonthLabel) els.rangeDateMonthLabel.textContent = `${year}年${month + 1}月`;
+    els.rangeDateCalendarGrid.replaceChildren();
+
+    for (let i = 0; i < mondayOffset; i += 1) {
+      const blank = document.createElement('span');
+      blank.className = 'calendar-day calendar-day-blank';
+      els.rangeDateCalendarGrid.appendChild(blank);
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const date = new Date(year, month, day, 12, 0, 0);
+      const key = localDateKey(date);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'calendar-day range-date-calendar-day';
+      btn.dataset.date = key;
+      if (key === todayKey) btn.classList.add('is-today');
+      if (key === selectedKey) btn.classList.add('is-selected');
+      if (key > todayKey) {
+        btn.disabled = true;
+        btn.classList.add('is-future');
+      }
+      const number = document.createElement('span');
+      number.className = 'calendar-day-number';
+      number.textContent = String(day);
+      btn.appendChild(number);
+      btn.addEventListener('click', () => selectRangeDateValue(key));
+      els.rangeDateCalendarGrid.appendChild(btn);
+    }
+
+    if (els.rangeDateNextMonth) els.rangeDateNextMonth.disabled = rangeDatePickerMonthIsToday();
+    if (els.rangeDateSummary) {
+      const label = state.rangeDateTarget === 'end' ? '结束日期' : '开始日期';
+      els.rangeDateSummary.textContent = `${label}：${formatRangeDateButton(selectedKey)}`;
+    }
+  }
+
+  function openRangeDatePicker(target) {
+    ensureDailyRangeInputs();
+    state.rangeDateTarget = target === 'end' ? 'end' : 'start';
+    setRangeDatePickerMonthFromDate(currentRangeDateKey() || todayDateKey());
+    if (els.rangeDateDialogTitle) els.rangeDateDialogTitle.textContent = state.rangeDateTarget === 'end' ? '选择结束日期' : '选择开始日期';
+    renderRangeDatePicker();
+    if (els.rangeDateDialog && !els.rangeDateDialog.open) els.rangeDateDialog.showModal();
+  }
+
+  function shiftRangeDatePickerMonth(delta) {
+    const candidate = new Date(state.rangeDateYear, state.rangeDateMonth + delta, 1, 12, 0, 0);
+    const now = new Date();
+    if (candidate.getFullYear() > now.getFullYear()
+      || (candidate.getFullYear() === now.getFullYear() && candidate.getMonth() > now.getMonth())) return;
+    state.rangeDateYear = candidate.getFullYear();
+    state.rangeDateMonth = candidate.getMonth();
+    renderRangeDatePicker();
+  }
+
+  function selectRangeDateValue(dateKey) {
+    if (!parseDateKey(dateKey) || dateKey > todayDateKey()) return;
+    if (state.rangeDateTarget === 'end') {
+      state.dailyRangeEnd = dateKey;
+      setRangeDateButton(els.dailyRangeEnd, dateKey);
+    } else {
+      state.dailyRangeStart = dateKey;
+      setRangeDateButton(els.dailyRangeStart, dateKey);
+    }
+    if (els.rangeDateDialog?.open) els.rangeDateDialog.close();
+  }
+
+  function updateDailyEncounterSubview() {
+    const view = ['overview', 'day', 'range'].includes(state.dailyEncounterSubview)
+      ? state.dailyEncounterSubview
+      : 'overview';
+    els.dailyEncounterOverview?.classList.toggle('hidden', view !== 'overview');
+    els.dailyEncounterDetailPane?.classList.toggle('hidden', view !== 'day');
+    els.dailyEncounterRangePane?.classList.toggle('hidden', view !== 'range');
+    if (state.partyHistoryMode === 'daily' && els.partyHistoryCount) {
+      if (view === 'day') els.partyHistoryCount.textContent = `${state.dailyEncounterPlayers.length} 位玩家`;
+      else if (view === 'range') els.partyHistoryCount.textContent = `${state.dailyRangeResults.length} 条记录`;
+      else els.partyHistoryCount.textContent = '每日记录';
+    }
+  }
+
+  async function loadDailyEncounterMonth() {
+    if (!actions.onLoadDailyEncounterMonth) {
+      state.dailyEncounterCounts = {};
+      return;
+    }
+    try {
+      state.dailyEncounterCounts = await actions.onLoadDailyEncounterMonth(state.dailyEncounterYear, state.dailyEncounterMonth) || {};
+    } catch (error) {
+      console.error('[FF14ChatOverlay] daily encounter month load failed:', error);
+      state.dailyEncounterCounts = {};
+    }
+  }
+
+  async function loadDailyEncounterDate(dateKey) {
+    if (!parseDateKey(dateKey) || dateKey > todayDateKey()) return;
+    state.dailyEncounterDate = dateKey;
+    try {
+      state.dailyEncounterPlayers = await actions.onLoadDailyEncounterDate?.(dateKey) || [];
+    } catch (error) {
+      console.error('[FF14ChatOverlay] daily encounter date load failed:', error);
+      state.dailyEncounterPlayers = [];
+    }
+    state.dailyEncounterPlayers.sort((a, b) => {
+      const at = String(a.firstSeenAt || a.lastSeenAt || '');
+      const bt = String(b.firstSeenAt || b.lastSeenAt || '');
+      return at.localeCompare(bt) || String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN');
+    });
+    renderDailyEncounterPlayers();
+    renderDailyEncounterCalendar();
+  }
+
+  async function openDailyEncounterDetail(dateKey) {
+    await loadDailyEncounterDate(dateKey);
+    state.dailyEncounterSubview = 'day';
+    updateDailyEncounterSubview();
+  }
+
+  function encounterSourceLabel(sources) {
+    const set = new Set(Array.isArray(sources) ? sources : []);
+    if (set.has('party') && set.has('chat')) return '组队 · 聊天';
+    if (set.has('party')) return '组队';
+    if (set.has('chat')) return '聊天';
+    return '遇到';
+  }
+
+  function formatEncounterClock(item) {
+    const d = new Date(item?.firstSeenAt || item?.lastSeenAt || '');
+    return Number.isNaN(d.getTime())
+      ? ''
+      : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
+  function renderDailyEncounterPlayers() {
+    if (!els.dailyEncounterPlayerList) return;
+    const items = Array.isArray(state.dailyEncounterPlayers) ? state.dailyEncounterPlayers : [];
+    els.dailyEncounterPlayerList.replaceChildren();
+    els.dailyEncounterEmpty?.classList.toggle('hidden', items.length !== 0);
+    if (els.dailyEncounterSelectedDate) els.dailyEncounterSelectedDate.textContent = friendlyDateLabel(state.dailyEncounterDate || todayDateKey(), false);
+    if (els.dailyEncounterSelectedCount) els.dailyEncounterSelectedCount.textContent = `${items.length} 位玩家`;
+    if (state.partyHistoryMode === 'daily' && state.dailyEncounterSubview === 'day' && els.partyHistoryCount) {
+      els.partyHistoryCount.textContent = `${items.length} 位玩家`;
+    }
+
+    for (const item of items) {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'daily-encounter-player-row';
+      row.title = '点击查看玩家记录';
+
+      const seen = document.createElement('span');
+      seen.className = 'daily-encounter-time';
+      seen.textContent = formatEncounterClock(item);
+
+      const identity = document.createElement('span');
+      identity.className = 'daily-encounter-player-identity';
+      const name = document.createElement('strong');
+      name.textContent = item.name || '未知玩家';
+      const world = document.createElement('span');
+      world.textContent = item.worldName || '';
+      identity.append(name, world);
+
+      const source = document.createElement('span');
+      source.className = 'daily-encounter-source';
+      source.textContent = encounterSourceLabel(item.sources);
+      if (Array.isArray(item.sources) && item.sources.includes('party')) source.classList.add('has-party');
+
+      row.append(seen, identity, source);
+      row.addEventListener('click', () => requestPlayerDetail(item));
+      els.dailyEncounterPlayerList.appendChild(row);
+    }
+  }
+
+  function renderDailyEncounterCalendar() {
+    if (!els.dailyEncounterCalendarGrid) return;
+    const year = state.dailyEncounterYear;
+    const month = state.dailyEncounterMonth;
+    const firstDay = new Date(year, month, 1, 12, 0, 0);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const leading = (firstDay.getDay() + 6) % 7;
+    const todayKey = todayDateKey();
+
+    els.dailyEncounterMonthLabel.textContent = `${year}年${month + 1}月`;
+    els.dailyEncounterCalendarGrid.replaceChildren();
+    for (let i = 0; i < leading; i += 1) {
+      const blank = document.createElement('span');
+      blank.className = 'calendar-day calendar-day-blank';
+      els.dailyEncounterCalendarGrid.appendChild(blank);
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const count = Number(state.dailyEncounterCounts?.[key] || 0);
+      const future = key > todayKey;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'calendar-day daily-encounter-calendar-day';
+      btn.disabled = future;
+      if (count > 0) btn.classList.add('has-records');
+      if (key === todayKey) btn.classList.add('is-today');
+      if (future) btn.classList.add('is-future');
+      btn.title = count > 0 ? `${key} · ${count} 位玩家 · 点击查看` : `${key} · 无记录`;
+
+      const number = document.createElement('span');
+      number.className = 'calendar-day-number';
+      number.textContent = String(day);
+      btn.appendChild(number);
+      if (count > 0) {
+        const badge = document.createElement('span');
+        badge.className = 'calendar-day-count';
+        badge.textContent = String(count);
+        btn.appendChild(badge);
+      }
+      btn.addEventListener('click', () => openDailyEncounterDetail(key));
+      els.dailyEncounterCalendarGrid.appendChild(btn);
+    }
+
+    if (els.dailyEncounterNextMonth) els.dailyEncounterNextMonth.disabled = dailyEncounterMonthIsToday();
+  }
+
+  async function shiftDailyEncounterMonth(delta) {
+    const candidate = new Date(state.dailyEncounterYear, state.dailyEncounterMonth + delta, 1, 12, 0, 0);
+    const now = new Date();
+    if (candidate.getFullYear() > now.getFullYear()
+      || (candidate.getFullYear() === now.getFullYear() && candidate.getMonth() > now.getMonth())) return;
+    state.dailyEncounterYear = candidate.getFullYear();
+    state.dailyEncounterMonth = candidate.getMonth();
+    await loadDailyEncounterMonth();
+    renderDailyEncounterCalendar();
+  }
+
+  function renderDailyRangeResults() {
+    if (!els.dailyRangeResultList) return;
+    const query = String(state.dailyRangeQuery || '').trim().toLocaleLowerCase('zh-CN');
+    const all = Array.isArray(state.dailyRangeResults) ? state.dailyRangeResults : [];
+    const items = query
+      ? all.filter((item) => String(item.name || '').toLocaleLowerCase('zh-CN').includes(query))
+      : all;
+
+    els.dailyRangeResultList.replaceChildren();
+    els.dailyRangeEmpty?.classList.toggle('hidden', items.length !== 0);
+    if (els.dailyRangeResultCount) els.dailyRangeResultCount.textContent = `${items.length} 条记录`;
+    if (els.dailyRangeResultSummary) {
+      const namePart = query ? ` · 昵称包含“${state.dailyRangeQuery.trim()}”` : '';
+      els.dailyRangeResultSummary.textContent = `${state.dailyRangeStart} 至 ${state.dailyRangeEnd}${namePart}；每位玩家每天最多一条记录，按时间从早到晚排列。`;
+    }
+    if (state.partyHistoryMode === 'daily' && state.dailyEncounterSubview === 'range' && els.partyHistoryCount) {
+      els.partyHistoryCount.textContent = `${items.length} 条记录`;
+    }
+
+    for (const item of items) {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'daily-range-result-row';
+      row.title = '点击查看玩家记录';
+
+      const when = document.createElement('span');
+      when.className = 'daily-range-result-when';
+      const d = parseDateKey(item.dateKey);
+      const dateText = d ? `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` : (item.dateKey || '');
+      when.textContent = `${dateText} ${formatEncounterClock(item)}`.trim();
+
+      const identity = document.createElement('span');
+      identity.className = 'daily-encounter-player-identity';
+      const name = document.createElement('strong');
+      name.textContent = item.name || '未知玩家';
+      const world = document.createElement('span');
+      world.textContent = item.worldName || '';
+      identity.append(name, world);
+
+      const source = document.createElement('span');
+      source.className = 'daily-encounter-source';
+      source.textContent = encounterSourceLabel(item.sources);
+      if (Array.isArray(item.sources) && item.sources.includes('party')) source.classList.add('has-party');
+
+      row.append(when, identity, source);
+      row.addEventListener('click', () => requestPlayerDetail(item));
+      els.dailyRangeResultList.appendChild(row);
+    }
+  }
+
+  async function runDailyRangeSearch() {
+    ensureDailyRangeInputs();
+    let startKey = String(getRangeDateButtonValue(els.dailyRangeStart) || state.dailyRangeStart || '').trim();
+    let endKey = String(getRangeDateButtonValue(els.dailyRangeEnd) || state.dailyRangeEnd || '').trim();
+    if (!parseDateKey(startKey) || !parseDateKey(endKey)) {
+      showToast('请选择有效的开始和结束日期');
+      return;
+    }
+    if (startKey > endKey) [startKey, endKey] = [endKey, startKey];
+    if (endKey > todayDateKey()) endKey = todayDateKey();
+
+    state.dailyRangeStart = startKey;
+    state.dailyRangeEnd = endKey;
+    setRangeDateButton(els.dailyRangeStart, startKey);
+    setRangeDateButton(els.dailyRangeEnd, endKey);
+    state.dailyRangeQuery = String(els.dailyRangeQuery?.value || '').trim();
+    try {
+      state.dailyRangeResults = await actions.onLoadDailyEncounterRange?.(startKey, endKey) || [];
+    } catch (error) {
+      console.error('[FF14ChatOverlay] daily encounter range load failed:', error);
+      state.dailyRangeResults = [];
+    }
+    state.dailyRangeResults.sort((a, b) => {
+      const at = String(a.firstSeenAt || a.lastSeenAt || '');
+      const bt = String(b.firstSeenAt || b.lastSeenAt || '');
+      return at.localeCompare(bt)
+        || String(a.dateKey || '').localeCompare(String(b.dateKey || ''))
+        || String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN');
+    });
+    state.dailyEncounterSubview = 'range';
+    renderDailyRangeResults();
+    updateDailyEncounterSubview();
+  }
+
+  async function setPartyHistoryMode(mode) {
+    state.partyHistoryMode = mode === 'daily' ? 'daily' : 'players';
+    if (state.partyHistoryMode === 'daily') state.dailyEncounterSubview = 'overview';
+    updatePartyHistoryModeTabs();
+    if (state.partyHistoryMode === 'players') {
+      renderPartyHistory();
+      return;
+    }
+    if (!state.dailyEncounterDate) state.dailyEncounterDate = todayDateKey();
+    setDailyEncounterMonthFromDate(state.dailyEncounterDate);
+    ensureDailyRangeInputs();
+    await loadDailyEncounterMonth();
+    renderDailyEncounterCalendar();
+    updateDailyEncounterSubview();
+  }
+
   function showPartyHistory(records) {
     state.partyHistoryRecords = Array.isArray(records) ? records : [];
     state.partyHistoryQuery = '';
+    state.partyHistoryMode = 'players';
+    state.dailyEncounterSubview = 'overview';
+    state.dailyEncounterDate = state.dailyEncounterDate || todayDateKey();
+    ensureDailyRangeInputs();
     if (els.partyHistorySearch) els.partyHistorySearch.value = '';
+    updatePartyHistoryModeTabs();
     updatePartyHistorySortTabs();
     renderPartyHistory();
     els.app.classList.add('hidden');
@@ -922,15 +1410,96 @@
     requestAnimationFrame(() => render(false));
   }
 
-  function showPlayerDetail(record, encounters = []) {
+  function setPlayerCalendarMonthFromDaily(dailyEncounters) {
+    const list = Array.isArray(dailyEncounters) ? dailyEncounters : [];
+    const latest = list.map((item) => parseDateKey(item.dateKey)).find(Boolean) || new Date();
+    state.playerCalendarYear = latest.getFullYear();
+    state.playerCalendarMonth = latest.getMonth();
+  }
+
+  function renderPlayerMiniCalendar() {
+    if (!els.playerCalendarGrid) return;
+    const year = state.playerCalendarYear;
+    const month = state.playerCalendarMonth;
+    const firstDay = new Date(year, month, 1, 12, 0, 0);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const leading = (firstDay.getDay() + 6) % 7;
+    const todayKey = todayDateKey();
+    const dailyMap = new Map((state.playerDetailDailyEncounters || []).map((item) => [item.dateKey, item]));
+
+    els.playerCalendarMonthLabel.textContent = `${year}年${month + 1}月`;
+    els.playerCalendarGrid.replaceChildren();
+    for (let i = 0; i < leading; i += 1) {
+      const blank = document.createElement('span');
+      blank.className = 'calendar-day calendar-day-blank';
+      els.playerCalendarGrid.appendChild(blank);
+    }
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const encounter = dailyMap.get(key) || null;
+      const cell = document.createElement('span');
+      cell.className = 'player-calendar-day';
+      if (encounter) cell.classList.add('has-encounter');
+      if (key === todayKey) cell.classList.add('is-today');
+      if (key > todayKey) cell.classList.add('is-future');
+      cell.textContent = String(day);
+      if (encounter) cell.title = `${key} · ${encounterSourceLabel(encounter.sources)}`;
+      else cell.title = `${key} · 无记录`;
+      els.playerCalendarGrid.appendChild(cell);
+    }
+    const now = new Date();
+    if (els.playerCalendarNextMonth) {
+      els.playerCalendarNextMonth.disabled = year === now.getFullYear() && month === now.getMonth();
+    }
+  }
+
+  function shiftPlayerCalendarMonth(delta) {
+    const candidate = new Date(state.playerCalendarYear, state.playerCalendarMonth + delta, 1, 12, 0, 0);
+    const now = new Date();
+    if (candidate.getFullYear() > now.getFullYear()
+      || (candidate.getFullYear() === now.getFullYear() && candidate.getMonth() > now.getMonth())) return;
+    state.playerCalendarYear = candidate.getFullYear();
+    state.playerCalendarMonth = candidate.getMonth();
+    renderPlayerMiniCalendar();
+  }
+
+  function encounterLocationLabel(encounter) {
+    const rawLocations = Array.isArray(encounter?.locations) ? encounter.locations : [];
+    const labels = [];
+    for (const location of rawLocations) {
+      const id = String(location?.zoneId || '').trim();
+      const storedName = String(location?.zoneName || '').trim();
+      const name = window.FF14Zones?.resolve?.(id, storedName) || storedName;
+      const label = name || (id ? `区域 #${id}` : '');
+      if (!label || labels[labels.length - 1] === label) continue;
+      labels.push(label);
+    }
+    if (!labels.length) {
+      const id = String(encounter?.zoneId || '').trim();
+      const storedName = String(encounter?.zoneName || '').trim();
+      const name = window.FF14Zones?.resolve?.(id, storedName) || storedName;
+      if (name) labels.push(name);
+      else if (id) labels.push(`区域 #${id}`);
+    }
+    return labels.length ? labels.join(' → ') : '地点未记录';
+  }
+
+  function showPlayerDetail(record, encounters = [], dailyEncounters = []) {
     const item = record || {};
     const count = Math.max(0, Number(item.encounterCount) || 0);
     els.playerDetailName.textContent = item.name || '未知玩家';
+    els.playerDetailName.classList.remove('encounter-tier-green', 'encounter-tier-gold');
+    if (count >= 50) els.playerDetailName.classList.add('encounter-tier-gold');
+    else if (count >= 10) els.playerDetailName.classList.add('encounter-tier-green');
     els.playerDetailWorld.textContent = item.worldName || '';
     els.playerDetailTitle.textContent = '玩家记录';
     els.playerDetailCount.textContent = count ? `${count} 次` : '暂无';
     els.playerDetailFirst.textContent = item.firstSeen ? formatSeen(item.firstSeen) : '—';
     els.playerDetailLast.textContent = item.lastSeen ? formatSeen(item.lastSeen) : '—';
+
+    state.playerDetailDailyEncounters = Array.isArray(dailyEncounters) ? dailyEncounters : [];
+    setPlayerCalendarMonthFromDaily(state.playerDetailDailyEncounters);
+    renderPlayerMiniCalendar();
 
     els.playerEncounterList.replaceChildren();
     const list = Array.isArray(encounters) ? encounters : [];
@@ -939,15 +1508,20 @@
       const row = document.createElement('div');
       row.className = 'player-encounter-row';
       const when = document.createElement('span');
+      when.className = 'player-encounter-time';
       when.textContent = formatSeen(encounter.seenAt);
-      const world = document.createElement('span');
-      world.textContent = encounter.worldName || item.worldName || '';
-      row.append(when, world);
+      const location = document.createElement('span');
+      location.className = 'player-encounter-location';
+      const locationText = encounterLocationLabel(encounter);
+      location.textContent = locationText;
+      location.title = locationText;
+      row.append(when, location);
       els.playerEncounterList.appendChild(row);
     }
 
     if (!els.playerDetailDialog.open) els.playerDetailDialog.showModal();
   }
+
 
   function topTabTypeLabel(entry) {
     return entry.kind === 'custom' ? '自定义分组' : '系统分类';
@@ -1300,6 +1874,46 @@
 
     els.partyHistoryBtn.addEventListener('click', () => onOpenPartyHistory?.());
     els.partyHistoryBack.addEventListener('click', hidePartyHistory);
+    els.partyHistoryModeTabs?.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-party-mode]');
+      if (!button) return;
+      setPartyHistoryMode(button.dataset.partyMode);
+    });
+    els.dailyEncounterPrevMonth?.addEventListener('click', () => shiftDailyEncounterMonth(-1));
+    els.dailyEncounterNextMonth?.addEventListener('click', () => shiftDailyEncounterMonth(1));
+    els.dailyEncounterDetailBack?.addEventListener('click', () => {
+      state.dailyEncounterSubview = 'overview';
+      updateDailyEncounterSubview();
+      renderDailyEncounterCalendar();
+    });
+    els.dailyRangeBack?.addEventListener('click', () => {
+      state.dailyEncounterSubview = 'overview';
+      updateDailyEncounterSubview();
+      renderDailyEncounterCalendar();
+    });
+    els.dailyRangeSearchBtn?.addEventListener('click', runDailyRangeSearch);
+    els.dailyRangeNativeInputBtn?.addEventListener('click', () => {
+      const current = els.dailyRangeQuery?.value || state.dailyRangeQuery || '';
+      const value = window.prompt('输入要检索的玩家昵称（可留空）：', current);
+      if (value !== null && els.dailyRangeQuery) {
+        els.dailyRangeQuery.value = String(value).trim();
+        state.dailyRangeQuery = els.dailyRangeQuery.value;
+      }
+    });
+    els.dailyRangeQuery?.addEventListener('keydown', (event) => {
+      if (event.isComposing || event.keyCode === 229) return;
+      event.stopPropagation();
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        runDailyRangeSearch();
+      }
+    });
+    els.dailyRangeStart?.addEventListener('click', () => openRangeDatePicker('start'));
+    els.dailyRangeEnd?.addEventListener('click', () => openRangeDatePicker('end'));
+    els.rangeDateDialogClose?.addEventListener('click', () => els.rangeDateDialog?.close());
+    els.rangeDatePrevMonth?.addEventListener('click', () => shiftRangeDatePickerMonth(-1));
+    els.rangeDateNextMonth?.addEventListener('click', () => shiftRangeDatePickerMonth(1));
+    els.rangeDateTodayBtn?.addEventListener('click', () => selectRangeDateValue(todayDateKey()));
 
     let partySearchComposing = false;
     const commitPartySearch = () => {
@@ -1348,6 +1962,8 @@
     });
 
     els.playerDetailClose.addEventListener('click', () => els.playerDetailDialog.close());
+    els.playerCalendarPrevMonth?.addEventListener('click', () => shiftPlayerCalendarMonth(-1));
+    els.playerCalendarNextMonth?.addEventListener('click', () => shiftPlayerCalendarMonth(1));
 
     els.messageContextMenu.addEventListener('click', (event) => {
       const button = event.target.closest('button[data-action]');

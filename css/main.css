@@ -155,7 +155,8 @@ button { color: inherit; }
   font-weight: 600;
   white-space: nowrap;
 }
-.party-order {
+.party-order,
+.alliance-order {
   display: inline-block;
   min-width: 1.15em;
   margin-right: 0.02em;
@@ -165,6 +166,10 @@ button { color: inherit; }
   font-style: normal;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+.alliance-order {
+  min-width: 0.95em;
+  letter-spacing: 0.01em;
 }
 .sender-name { font: inherit; }
 .sender-world {
@@ -2049,4 +2054,1083 @@ body.overlay-collapsed .overlay-collapse-btn {
   .top-tabs-card .sub-note { margin-block: 6px; }
   .top-tabs-manager-tabs { margin-block: 6px; }
   .top-tab-manage-row { min-height: 42px; }
+}
+
+/* V1.0.6 — daily player encounters and per-player encounter calendar. */
+.party-history-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 7px 10px 6px;
+  border-bottom: 1px solid rgba(var(--text-rgb), .065);
+  background: rgba(var(--text-rgb), .018);
+}
+.party-history-mode-tab {
+  position: relative;
+  min-height: 32px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(var(--text-rgb), .48);
+  font: inherit;
+  font-size: .78em;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .14s ease, color .14s ease, border-color .14s ease;
+}
+.party-history-mode-tab:hover {
+  color: rgba(var(--text-rgb), .82);
+  background: rgba(var(--text-rgb), .04);
+}
+.party-history-mode-tab.active {
+  color: rgba(var(--text-rgb), .96);
+  border-color: rgba(var(--text-rgb), .08);
+  background: rgba(var(--text-rgb), .075);
+}
+.party-history-mode-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 24%;
+  right: 24%;
+  bottom: -7px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(var(--text-rgb), .62);
+}
+.party-history-mode-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.daily-encounter-pane { padding-bottom: 7px; }
+.daily-encounter-summary {
+  padding: 7px 10px 5px;
+  color: rgba(var(--text-rgb), .42);
+  font-size: .68em;
+  line-height: 1.35;
+}
+.daily-encounter-calendar-toolbar,
+.player-mini-calendar-toolbar {
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 6px;
+}
+.daily-encounter-calendar-toolbar .calendar-month-label,
+.player-mini-calendar-toolbar .calendar-month-label { text-align: center; }
+.daily-encounter-weekdays,
+.daily-encounter-calendar-grid { padding-left: 10px; padding-right: 10px; }
+.daily-encounter-calendar-grid { padding-bottom: 6px; }
+.daily-encounter-calendar-day.has-records {
+  border-color: rgba(94, 201, 121, .22);
+  background: rgba(94, 201, 121, .075);
+}
+.daily-encounter-calendar-day.has-records .calendar-day-count {
+  color: rgba(172, 238, 188, .94);
+  background: rgba(66, 160, 89, .24);
+}
+.daily-encounter-calendar-day.is-selected {
+  border-color: rgba(94, 201, 121, .52);
+  box-shadow: inset 0 0 0 1px rgba(94, 201, 121, .18);
+}
+.daily-encounter-selected-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 2px 10px 0;
+  padding: 8px 2px 6px;
+  border-top: 1px solid rgba(var(--text-rgb), .06);
+}
+.daily-encounter-selected-header strong { font-size: .78em; color: rgba(var(--text-rgb), .88); }
+.daily-encounter-selected-header span { color: rgba(var(--text-rgb), .42); font-size: .68em; }
+.daily-encounter-player-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 8px;
+  padding-right: 3px;
+}
+.daily-encounter-player-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 84px 52px;
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(var(--text-rgb), .045);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.daily-encounter-player-row:hover { background: rgba(var(--text-rgb), .05); }
+.daily-encounter-player-identity { min-width: 0; display: flex; align-items: baseline; gap: 6px; }
+.daily-encounter-player-identity strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(var(--text-rgb), .92);
+  font-size: .78em;
+}
+.daily-encounter-player-identity span {
+  flex: 0 0 auto;
+  color: rgba(var(--text-rgb), .46);
+  font-size: .66em;
+  font-style: italic;
+}
+.daily-encounter-source {
+  justify-self: start;
+  padding: 2px 6px;
+  border: 1px solid rgba(var(--text-rgb), .075);
+  border-radius: 999px;
+  color: rgba(var(--text-rgb), .52);
+  background: rgba(var(--text-rgb), .03);
+  font-size: .64em;
+  white-space: nowrap;
+}
+.daily-encounter-source.has-party {
+  color: rgba(174, 238, 188, .84);
+  border-color: rgba(94, 201, 121, .20);
+  background: rgba(94, 201, 121, .07);
+}
+.daily-encounter-time {
+  justify-self: end;
+  color: rgba(var(--text-rgb), .38);
+  font-size: .66em;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-detail-card { max-height: min(88vh, 760px); }
+.player-calendar-title { margin-top: 1px; }
+.player-mini-calendar {
+  margin-bottom: 12px;
+  padding: 4px 6px 7px;
+  border: 1px solid rgba(var(--text-rgb), .07);
+  border-radius: 9px;
+  background: rgba(var(--text-rgb), .025);
+}
+.player-mini-calendar-toolbar { padding: 2px 2px 5px; }
+.player-mini-calendar-toolbar .calendar-nav-btn { width: 30px; height: 28px; min-height: 28px; }
+.player-mini-calendar-weekdays,
+.player-mini-calendar-grid { gap: 3px; }
+.player-mini-calendar-weekdays { padding-bottom: 2px; }
+.player-mini-calendar-weekdays span { font-size: .60em; }
+.player-calendar-day {
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(var(--text-rgb), .045);
+  border-radius: 6px;
+  background: rgba(var(--text-rgb), .035);
+  color: rgba(var(--text-rgb), .32);
+  font-size: .66em;
+  font-variant-numeric: tabular-nums;
+}
+.player-calendar-day.has-encounter {
+  border-color: rgba(94, 201, 121, .30);
+  background: rgba(73, 177, 98, .22);
+  color: rgba(205, 247, 214, .96);
+  font-weight: 700;
+}
+.player-calendar-day.is-today { box-shadow: inset 0 0 0 1px rgba(var(--text-rgb), .20); }
+.player-calendar-day.is-future { opacity: .20; }
+.player-calendar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 2px 0;
+  color: rgba(var(--text-rgb), .42);
+  font-size: .60em;
+}
+.player-calendar-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.player-calendar-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(var(--text-rgb), .08);
+  background: rgba(var(--text-rgb), .07);
+}
+.player-calendar-legend-dot.met {
+  border-color: rgba(94, 201, 121, .30);
+  background: rgba(73, 177, 98, .55);
+}
+
+.daily-encounter-player-list {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-scroll-thumb) var(--ui-scroll-track);
+}
+.daily-encounter-player-list::-webkit-scrollbar { width: 13px; height: 13px; }
+.daily-encounter-player-list::-webkit-scrollbar-track {
+  background: var(--ui-scroll-track);
+  border-left: 1px solid rgba(var(--text-rgb), .035);
+}
+.daily-encounter-player-list::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--ui-scroll-thumb);
+  background-clip: content-box;
+}
+.daily-encounter-player-list::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-scroll-thumb-hover);
+  background-clip: content-box;
+}
+.daily-encounter-player-list::-webkit-scrollbar-thumb:active {
+  background: var(--ui-scroll-thumb-active);
+  background-clip: content-box;
+}
+
+@media (max-width: 520px) {
+  .daily-encounter-player-row { grid-template-columns: minmax(100px, 1fr) 74px 46px; gap: 5px; }
+  .daily-encounter-player-identity span { display: none; }
+  .player-calendar-day { min-height: 24px; }
+}
+
+
+/* V1.0.7 — compact calendar dialog + daily encounter drill-down / range search. */
+
+/* “聊天日期” should not need its own page scrollbar at normal overlay sizes. */
+.calendar-dialog {
+  overflow: hidden;
+  max-height: calc(100% - 18px);
+}
+.calendar-card {
+  overflow: hidden;
+  max-height: none;
+}
+.calendar-dialog .settings-header {
+  margin-bottom: 6px;
+}
+.calendar-dialog .calendar-toolbar {
+  margin: 0 0 5px;
+}
+.calendar-dialog .calendar-weekdays,
+.calendar-dialog .calendar-grid {
+  gap: 2px;
+}
+.calendar-dialog .calendar-weekdays {
+  margin-bottom: 2px;
+}
+.calendar-dialog .calendar-day {
+  aspect-ratio: auto;
+  min-height: 30px;
+  height: 32px;
+  padding: 3px 2px;
+  border-radius: 7px;
+}
+.calendar-dialog .calendar-day-count {
+  margin-top: 1px;
+  font-size: .54em;
+  line-height: 1;
+}
+.calendar-dialog .calendar-footer {
+  margin-top: 6px;
+  padding-top: 7px;
+}
+
+/* Daily encounter overview stays visually compact instead of stretching over the whole page. */
+.daily-encounter-pane {
+  padding-bottom: 0;
+  overflow: hidden;
+}
+.daily-encounter-overview,
+.daily-encounter-detail-pane,
+.daily-encounter-range-pane {
+  flex: 1;
+  min-height: 0;
+}
+.daily-encounter-overview {
+  overflow-y: auto;
+  padding: 0 10px 12px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-scroll-thumb) var(--ui-scroll-track);
+}
+.daily-encounter-summary {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 8px 2px 6px;
+}
+.daily-encounter-calendar-shell {
+  width: min(100%, 540px);
+  margin: 0 auto;
+  padding: 7px 10px 9px;
+  border: 1px solid rgba(var(--text-rgb), .075);
+  border-radius: 11px;
+  background: rgba(var(--text-rgb), .022);
+}
+.daily-encounter-calendar-toolbar {
+  padding: 1px 0 6px;
+}
+.daily-encounter-weekdays,
+.daily-encounter-calendar-grid {
+  padding-left: 0;
+  padding-right: 0;
+}
+.daily-encounter-weekdays,
+.daily-encounter-calendar-grid {
+  gap: 3px;
+}
+.daily-encounter-calendar-day {
+  aspect-ratio: auto;
+  min-height: 35px;
+  height: 37px;
+  padding: 4px 2px 3px;
+  border-radius: 8px;
+}
+.daily-encounter-calendar-day .calendar-day-count {
+  font-size: .55em;
+  margin-top: 1px;
+}
+
+.daily-range-search-card {
+  width: min(100%, 540px);
+  margin: 10px auto 0;
+  padding: 10px;
+  border: 1px solid rgba(var(--text-rgb), .075);
+  border-radius: 11px;
+  background: rgba(var(--text-rgb), .022);
+}
+.daily-range-search-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.daily-range-search-heading strong {
+  color: rgba(var(--text-rgb), .88);
+  font-size: .76em;
+}
+.daily-range-search-heading span {
+  color: rgba(var(--text-rgb), .40);
+  font-size: .64em;
+  text-align: right;
+}
+.daily-range-date-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 7px;
+  align-items: end;
+  margin-bottom: 7px;
+}
+.daily-range-date-row label {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  color: rgba(var(--text-rgb), .50);
+  font-size: .68em;
+}
+.daily-range-date-row input,
+.daily-range-query-row input {
+  min-width: 0;
+  height: 32px;
+  border: 1px solid rgba(var(--text-rgb), .10);
+  border-radius: 7px;
+  outline: none;
+  background: rgba(var(--text-rgb), .04);
+  color: var(--text);
+  padding: 0 8px;
+  font: inherit;
+  font-size: .78em;
+}
+.daily-range-date-row input:focus,
+.daily-range-query-row input:focus {
+  border-color: rgba(var(--text-rgb), .24);
+  background: rgba(var(--text-rgb), .065);
+}
+.daily-range-separator {
+  align-self: center;
+  color: rgba(var(--text-rgb), .28);
+  font-size: .72em;
+}
+.daily-range-query-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 7px;
+  align-items: center;
+}
+.toolbar-btn.primary {
+  border-color: rgba(var(--text-rgb), .16);
+  background: rgba(var(--text-rgb), .12);
+  color: rgba(var(--text-rgb), .94);
+}
+
+.daily-encounter-detail-pane,
+.daily-encounter-range-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.daily-encounter-subpage-header {
+  display: grid;
+  grid-template-columns: minmax(86px, 1fr) auto minmax(86px, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 7px;
+  border-bottom: 1px solid rgba(var(--text-rgb), .065);
+}
+.daily-encounter-subpage-header > div {
+  min-width: 0;
+  text-align: center;
+}
+.daily-encounter-subpage-header strong {
+  display: block;
+  color: rgba(var(--text-rgb), .92);
+  font-size: .82em;
+  white-space: nowrap;
+}
+.daily-encounter-subpage-header span {
+  display: block;
+  margin-top: 2px;
+  color: rgba(var(--text-rgb), .42);
+  font-size: .64em;
+}
+.daily-encounter-detail-note {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(var(--text-rgb), .045);
+  color: rgba(var(--text-rgb), .40);
+  font-size: .66em;
+  line-height: 1.4;
+}
+.daily-encounter-player-list,
+.daily-range-result-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 8px 7px;
+  padding: 2px 3px 0 0;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-scroll-thumb) var(--ui-scroll-track);
+}
+.daily-encounter-player-row {
+  grid-template-columns: 52px minmax(120px, 1fr) auto;
+  gap: 8px;
+}
+.daily-encounter-time {
+  justify-self: start;
+  color: rgba(var(--text-rgb), .42);
+  font-size: .68em;
+}
+.daily-range-result-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 92px minmax(120px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(var(--text-rgb), .045);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.daily-range-result-row:hover {
+  background: rgba(var(--text-rgb), .05);
+}
+.daily-range-result-when {
+  color: rgba(var(--text-rgb), .42);
+  font-size: .66em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Use the same scrollbar visual as the main chat area. */
+.daily-encounter-overview::-webkit-scrollbar,
+.daily-encounter-player-list::-webkit-scrollbar,
+.daily-range-result-list::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+.daily-encounter-overview::-webkit-scrollbar-track,
+.daily-encounter-player-list::-webkit-scrollbar-track,
+.daily-range-result-list::-webkit-scrollbar-track {
+  background: var(--ui-scroll-track);
+  border-left: 1px solid rgba(var(--text-rgb), .035);
+}
+.daily-encounter-overview::-webkit-scrollbar-thumb,
+.daily-encounter-player-list::-webkit-scrollbar-thumb,
+.daily-range-result-list::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--ui-scroll-thumb);
+  background-clip: content-box;
+}
+.daily-encounter-overview::-webkit-scrollbar-thumb:hover,
+.daily-encounter-player-list::-webkit-scrollbar-thumb:hover,
+.daily-range-result-list::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-scroll-thumb-hover);
+  background-clip: content-box;
+}
+.daily-encounter-overview::-webkit-scrollbar-thumb:active,
+.daily-encounter-player-list::-webkit-scrollbar-thumb:active,
+.daily-range-result-list::-webkit-scrollbar-thumb:active {
+  background: var(--ui-scroll-thumb-active);
+  background-clip: content-box;
+}
+
+@media (max-height: 460px) {
+  .calendar-dialog .calendar-day {
+    min-height: 27px;
+    height: 28px;
+  }
+  .calendar-dialog .calendar-toolbar {
+    margin-bottom: 2px;
+  }
+  .calendar-dialog .calendar-footer {
+    margin-top: 3px;
+    padding-top: 4px;
+  }
+}
+@media (max-width: 520px) {
+  .daily-encounter-calendar-shell,
+  .daily-range-search-card {
+    width: 100%;
+  }
+  .daily-range-search-heading {
+    display: block;
+  }
+  .daily-range-search-heading span {
+    display: block;
+    margin-top: 2px;
+    text-align: left;
+  }
+  .daily-range-date-row {
+    grid-template-columns: 1fr;
+  }
+  .daily-range-separator {
+    display: none;
+  }
+  .daily-range-query-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .daily-range-query-row .primary {
+    grid-column: 1 / -1;
+  }
+  .daily-encounter-player-row {
+    grid-template-columns: 48px minmax(100px, 1fr) auto;
+  }
+  .daily-range-result-row {
+    grid-template-columns: 78px minmax(100px, 1fr) auto;
+  }
+}
+
+
+/* V1.0.8 — calendar geometry, count badges, dialog scrollbar and encounter tiers. */
+
+/* Keep count bubbles completely inside date cells. */
+.calendar-day {
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.calendar-day-number {
+  position: relative;
+  z-index: 1;
+}
+.calendar-day-count {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 6px);
+  min-width: 15px;
+  height: 11px;
+  margin: 0;
+  padding: 0 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .49em;
+  line-height: 11px;
+  box-sizing: border-box;
+}
+.calendar-day.has-records,
+.calendar-day.is-selected {
+  padding-bottom: 15px;
+}
+
+/* Chat-history calendar: slightly taller cells so the count badge never hangs below the box. */
+.calendar-dialog .calendar-day {
+  height: 38px;
+  min-height: 38px;
+  padding-top: 4px;
+}
+.calendar-dialog .calendar-day.has-records,
+.calendar-dialog .calendar-day.is-selected {
+  padding-bottom: 14px;
+}
+.calendar-dialog .calendar-day-count {
+  bottom: 3px;
+  height: 10px;
+  line-height: 10px;
+  font-size: .47em;
+}
+
+/* Daily-encounter calendar uses the same in-cell badge behavior. */
+.daily-encounter-calendar-day {
+  position: relative;
+  overflow: hidden;
+}
+.daily-encounter-calendar-day.has-records,
+.daily-encounter-calendar-day.is-selected {
+  padding-bottom: 14px;
+}
+.daily-encounter-calendar-day .calendar-day-count {
+  bottom: 3px;
+  height: 10px;
+  line-height: 10px;
+  font-size: .48em;
+}
+
+/* Player detail calendar: one compact square grid, including the leading blank cells. */
+.player-mini-calendar-weekdays,
+.player-mini-calendar-grid {
+  width: min(100%, 350px);
+  margin-left: auto;
+  margin-right: auto;
+}
+.player-mini-calendar-grid {
+  align-items: stretch;
+  grid-auto-rows: auto;
+}
+.player-mini-calendar-grid > .player-calendar-day,
+.player-mini-calendar-grid > .calendar-day-blank {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+}
+.player-mini-calendar-grid > .calendar-day-blank {
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+}
+.player-calendar-day {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  line-height: 1;
+}
+
+/* Chromium was scrolling the dialog itself, which exposed a bright native scrollbar. */
+.player-detail-dialog {
+  overflow: hidden;
+}
+.player-detail-card {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-scroll-thumb) var(--ui-scroll-track);
+}
+.player-detail-card::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+.player-detail-card::-webkit-scrollbar-track {
+  background: var(--ui-scroll-track);
+  border-left: 1px solid rgba(var(--text-rgb), .035);
+}
+.player-detail-card::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--ui-scroll-thumb);
+  background-clip: content-box;
+}
+.player-detail-card::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-scroll-thumb-hover);
+  background-clip: content-box;
+}
+.player-detail-card::-webkit-scrollbar-thumb:active {
+  background: var(--ui-scroll-thumb-active);
+  background-clip: content-box;
+}
+.player-detail-card::-webkit-scrollbar-corner { background: transparent; }
+
+/* Encounter-frequency tiers: nickname only. */
+.party-history-name.encounter-tier-green,
+.player-detail-name.encounter-tier-green {
+  color: rgb(127, 222, 151);
+}
+.party-history-name.encounter-tier-gold,
+.player-detail-name.encounter-tier-gold {
+  color: rgb(232, 194, 96);
+}
+.party-history-clickable:hover .party-history-name.encounter-tier-green,
+.party-history-clickable:hover .party-history-name.encounter-tier-gold {
+  text-decoration-color: currentColor;
+}
+
+@media (max-width: 520px) {
+  .player-mini-calendar-weekdays,
+  .player-mini-calendar-grid { width: min(100%, 315px); }
+  .calendar-day-count { font-size: .46em; }
+}
+
+
+/* V1.0.9 — make recent-party history independently scrollable and show zone history. */
+.player-encounter-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+.player-encounter-title > span:last-child {
+  color: rgba(var(--text-rgb), .36);
+  font-size: .86em;
+  font-weight: 400;
+}
+.player-encounter-list {
+  flex: 0 0 auto;
+  height: clamp(118px, 23vh, 190px);
+  max-height: 190px;
+  min-height: 92px;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-scroll-thumb) var(--ui-scroll-track);
+  border: 1px solid rgba(var(--text-rgb), .055);
+  border-radius: 8px;
+  background: rgba(var(--text-rgb), .018);
+}
+.player-encounter-list:focus {
+  outline: 1px solid rgba(var(--text-rgb), .12);
+  outline-offset: 1px;
+}
+.player-encounter-list::-webkit-scrollbar { width: 13px; }
+.player-encounter-list::-webkit-scrollbar-track {
+  background: var(--ui-scroll-track);
+  border-left: 1px solid rgba(var(--text-rgb), .035);
+}
+.player-encounter-list::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--ui-scroll-thumb);
+  background-clip: content-box;
+}
+.player-encounter-list::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-scroll-thumb-hover);
+  background-clip: content-box;
+}
+.player-encounter-list::-webkit-scrollbar-thumb:active {
+  background: var(--ui-scroll-thumb-active);
+  background-clip: content-box;
+}
+.player-encounter-row {
+  grid-template-columns: minmax(138px, .8fr) minmax(0, 1.2fr);
+  align-items: start;
+  padding: 7px 8px;
+}
+.player-encounter-time {
+  color: rgba(var(--text-rgb), .62);
+  white-space: nowrap;
+}
+.player-encounter-location {
+  min-width: 0;
+  color: rgba(var(--text-rgb), .72) !important;
+  font-size: .92em !important;
+  font-style: normal !important;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .player-encounter-row { grid-template-columns: 1fr; gap: 3px; }
+  .player-encounter-time { font-size: .92em; }
+}
+
+/* V1.0.11 — responsive chat-date scrolling + custom in-overlay range date picker. */
+.calendar-dialog,
+.range-date-dialog {
+  overflow: hidden;
+  max-height: calc(100vh - 16px);
+}
+.calendar-card,
+.range-date-card {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 18px);
+  overflow: hidden;
+}
+.calendar-card > .settings-header,
+.range-date-card > .settings-header {
+  flex: 0 0 auto;
+}
+.calendar-scroll-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 3px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-scroll-thumb) var(--ui-scroll-track);
+}
+.calendar-scroll-area::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+.calendar-scroll-area::-webkit-scrollbar-track {
+  background: var(--ui-scroll-track);
+  border-left: 1px solid rgba(var(--text-rgb), .035);
+}
+.calendar-scroll-area::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--ui-scroll-thumb);
+  background-clip: content-box;
+}
+.calendar-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-scroll-thumb-hover);
+  background-clip: content-box;
+}
+.calendar-scroll-area::-webkit-scrollbar-thumb:active {
+  background: var(--ui-scroll-thumb-active);
+  background-clip: content-box;
+}
+.calendar-scroll-area::-webkit-scrollbar-corner { background: transparent; }
+
+.range-date-dialog {
+  width: min(390px, calc(100% - 26px));
+}
+.range-date-card {
+  padding: 13px;
+}
+.range-date-calendar-day {
+  min-height: 36px;
+  height: 38px;
+  aspect-ratio: auto;
+  padding: 5px 3px;
+}
+.range-date-calendar-day .calendar-day-number {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.daily-range-date-row .range-date-select-btn {
+  min-width: 0;
+  width: 100%;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid rgba(var(--text-rgb), .10);
+  border-radius: 7px;
+  background: rgba(var(--text-rgb), .04);
+  color: rgba(var(--text-rgb), .86);
+  font: inherit;
+  font-size: .78em;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+.daily-range-date-row .range-date-select-btn:hover,
+.daily-range-date-row .range-date-select-btn:focus-visible {
+  border-color: rgba(var(--text-rgb), .24);
+  background: rgba(var(--text-rgb), .065);
+  color: var(--text);
+  outline: none;
+}
+.daily-range-date-row .range-date-select-btn::after {
+  content: '▣';
+  float: right;
+  margin-left: 8px;
+  color: rgba(var(--text-rgb), .40);
+}
+
+@media (max-height: 390px) {
+  .calendar-card,
+  .range-date-card {
+    max-height: calc(100vh - 10px);
+    padding: 10px 11px;
+  }
+  .calendar-card > .settings-header,
+  .range-date-card > .settings-header {
+    margin-bottom: 5px;
+  }
+}
+
+/* Keep custom range-picker leading blanks exactly the same height as real dates. */
+.range-date-dialog .calendar-day {
+  aspect-ratio: auto;
+  min-height: 38px;
+  height: 38px;
+  padding: 5px 3px;
+}
+@media (max-height: 390px) {
+  .range-date-dialog .calendar-day {
+    min-height: 32px;
+    height: 32px;
+  }
+}
+
+/* V1.0.12 — top category manager polish: unified scrollbar + contained row typography. */
+.top-tabs-dialog {
+  overflow: hidden !important;
+  max-height: calc(100vh - 20px);
+}
+.top-tabs-card {
+  box-sizing: border-box;
+  width: 100%;
+  height: min(570px, calc(100vh - 24px));
+  max-height: calc(100vh - 24px);
+  min-height: 0;
+  overflow: hidden;
+}
+.top-tabs-manager-viewport {
+  min-height: 0;
+  overflow: hidden;
+}
+.top-tabs-manager-pane {
+  min-height: 0;
+  overflow: hidden;
+  padding: 7px 6px 7px 8px;
+}
+.top-tabs-manager-pane .top-tabs-list {
+  box-sizing: border-box;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 5px 0 0;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-scroll-thumb) var(--ui-scroll-track);
+}
+.top-tabs-manager-pane .top-tabs-list::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+.top-tabs-manager-pane .top-tabs-list::-webkit-scrollbar-track {
+  background: var(--ui-scroll-track);
+  border-left: 1px solid rgba(var(--text-rgb), .035);
+  border-radius: 999px;
+}
+.top-tabs-manager-pane .top-tabs-list::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--ui-scroll-thumb);
+  background-clip: content-box;
+}
+.top-tabs-manager-pane .top-tabs-list::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-scroll-thumb-hover);
+  background-clip: content-box;
+}
+.top-tabs-manager-pane .top-tabs-list::-webkit-scrollbar-thumb:active {
+  background: var(--ui-scroll-thumb-active);
+  background-clip: content-box;
+}
+.top-tabs-manager-pane .top-tabs-list::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.top-tab-manage-row {
+  box-sizing: border-box;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 9px;
+  min-height: 58px;
+  padding: 7px 9px;
+  overflow: hidden;
+  border-radius: 10px;
+  align-items: center;
+}
+.top-tab-handle,
+.top-tab-hidden-marker {
+  width: 28px;
+  height: 34px;
+  flex: 0 0 28px;
+  border-radius: 7px;
+}
+.top-tab-info {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 42px;
+  padding: 3px 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  overflow: hidden;
+}
+.top-tab-info strong,
+.top-tab-info span {
+  display: block;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.top-tab-info strong {
+  line-height: 1.18;
+  font-size: .92em;
+}
+.top-tab-info span {
+  line-height: 1.16;
+  font-size: .72em;
+}
+.top-tab-actions {
+  align-self: center;
+  flex-wrap: nowrap;
+}
+.top-tab-action {
+  box-sizing: border-box;
+  height: 32px;
+  line-height: 1;
+}
+
+@media (max-height: 520px) {
+  .top-tabs-card {
+    height: calc(100vh - 12px);
+    max-height: calc(100vh - 12px);
+  }
+  .top-tab-manage-row {
+    min-height: 54px;
+    padding-block: 5px;
+  }
+  .top-tab-info { min-height: 38px; }
+}
+
+@media (max-width: 520px) {
+  .top-tab-manage-row {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 6px;
+    padding-inline: 7px;
+  }
+  .top-tab-handle,
+  .top-tab-hidden-marker {
+    width: 24px;
+    flex-basis: 24px;
+  }
 }
