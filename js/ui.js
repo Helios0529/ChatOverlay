@@ -29,10 +29,12 @@
     calendarYear: 0,
     calendarMonth: 0,
     calendarCounts: {},
+    gameConnection: { connected: false, playerName: '' },
     settings: {
       fontSize: 15,
       opacity: 72,
       showTime: true,
+      showGameCharacter: true,
       backgroundColor: '#0D0F14',
       fontColor: '#FFFFFF',
       channelColors: {},
@@ -170,6 +172,7 @@
     els.colorApplyBtn = document.getElementById('colorApplyBtn');
     els.resetInterfaceBtn = document.getElementById('resetInterfaceBtn');
     els.showTime = document.getElementById('showTime');
+    els.showGameCharacter = document.getElementById('showGameCharacter');
     els.clearBtn = document.getElementById('clearBtn');
     els.topTabsBtn = document.getElementById('topTabsBtn');
     els.topTabsDialog = document.getElementById('topTabsDialog');
@@ -305,6 +308,7 @@
     if (!/^#[0-9a-f]{6}$/i.test(state.settings.backgroundColor || '')) state.settings.backgroundColor = '#0D0F14';
     if (!/^#[0-9a-f]{6}$/i.test(state.settings.fontColor || '')) state.settings.fontColor = '#FFFFFF';
     if (!['recent','count','name'].includes(state.settings.partyHistorySort)) state.settings.partyHistorySort = 'recent';
+    if (typeof state.settings.showGameCharacter !== 'boolean') state.settings.showGameCharacter = true;
 
     const defaults = window.FF14Channels?.DEFAULT_CHANNEL_COLORS || {};
     const savedChannelColors = (state.settings.channelColors && typeof state.settings.channelColors === 'object')
@@ -356,8 +360,10 @@
       els.fontColorValue.textContent = state.settings.fontColor.toUpperCase();
       els.fontColorSwatch.style.background = state.settings.fontColor;
       els.showTime.checked = state.settings.showTime;
+      if (els.showGameCharacter) els.showGameCharacter.checked = state.settings.showGameCharacter;
       updatePartyHistorySortTabs();
     }
+    renderGameConnectionStatus();
   }
 
   function selectTab(tabKey) {
@@ -1791,23 +1797,30 @@
     if (mode) els.status.classList.add(`status-${mode}`);
   }
 
-  function setGameConnectionStatus(connected, player = {}) {
+  function renderGameConnectionStatus() {
     if (!els.status) return;
-    const isConnected = Boolean(connected);
-    const name = String(player?.name || '').trim();
+    const isConnected = Boolean(state.gameConnection.connected);
+    const name = String(state.gameConnection.playerName || '').trim();
+    const showCharacter = state.settings.showGameCharacter !== false;
     setStatus(isConnected ? '游戏已连接' : '游戏未连接', isConnected ? 'connected' : 'disconnected');
 
     if (els.statusCharacter) {
-      if (isConnected && name) {
-        els.statusCharacter.textContent = `当前角色：${name}（ID）`;
+      if (isConnected && name && showCharacter) {
+        els.statusCharacter.textContent = `当前角色：${name}`;
         els.statusCharacter.classList.remove('hidden');
-        els.status.title = `游戏已连接\n当前角色：${name}（ID）`;
+        els.status.title = `游戏已连接\n当前角色：${name}`;
       } else {
         els.statusCharacter.textContent = '';
         els.statusCharacter.classList.add('hidden');
-        els.status.title = '游戏未连接';
+        els.status.title = isConnected ? '游戏已连接' : '游戏未连接';
       }
     }
+  }
+
+  function setGameConnectionStatus(connected, player = {}) {
+    state.gameConnection.connected = Boolean(connected);
+    state.gameConnection.playerName = state.gameConnection.connected ? String(player?.name || '').trim() : '';
+    renderGameConnectionStatus();
   }
 
   function setOverlayCollapsed(collapsed) {
@@ -2189,6 +2202,7 @@
       state.settings.fontSize = 15;
       state.settings.opacity = 72;
       state.settings.showTime = true;
+      state.settings.showGameCharacter = true;
       state.settings.backgroundColor = '#0D0F14';
       state.settings.fontColor = '#FFFFFF';
       state.settings.channelColors = { ...(window.FF14Channels.DEFAULT_CHANNEL_COLORS || {}) };
@@ -2205,6 +2219,14 @@
       state.settings.showTime = els.showTime.checked;
       saveSettings(); render();
     });
+
+    if (els.showGameCharacter) {
+      els.showGameCharacter.addEventListener('change', () => {
+        state.settings.showGameCharacter = els.showGameCharacter.checked;
+        saveSettings();
+        renderGameConnectionStatus();
+      });
+    }
 
     els.clearBtn.addEventListener('click', onClear);
   }
