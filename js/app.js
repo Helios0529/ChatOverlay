@@ -237,7 +237,7 @@
       onLoadDailyEncounterDate: (dateKey) => window.FF14Storage.dailyPlayersForDate(dateKey, { excludeName: window.FF14Roster?.getPrimaryPlayerName?.() || '' }),
       onLoadDailyEncounterRange: (startKey, endKey) => window.FF14Storage.dailyPlayersForRange(startKey, endKey, { excludeName: window.FF14Roster?.getPrimaryPlayerName?.() || '' }),
     });
-    window.FF14UI.setStatus('连接 Overlay…', 'connecting');
+    window.FF14UI.setGameConnectionStatus?.(false);
 
     try {
       await window.FF14Storage.openDB();
@@ -293,11 +293,14 @@
 
       if (primaryReady && latestParty.length) recordPartySnapshot(latestParty);
       window.FF14UI.refreshMetadata?.();
-      window.FF14UI.setStatus('Overlay 已连接', 'connected');
+      window.FF14UI.setGameConnectionStatus?.(primaryReady, {
+        name: window.FF14Roster?.getPrimaryPlayerName?.() || '',
+        id: window.FF14Roster?.getPrimaryPlayerId?.() || '',
+      });
     });
 
     window.addEventListener('ff14overlayconnected', () => {
-      window.FF14UI.setStatus('Overlay 已连接', 'connected');
+      if (!primaryReady) window.FF14UI.setGameConnectionStatus?.(false);
     });
 
     scheduleMidnightPartyRefresh();
@@ -305,7 +308,7 @@
 
     setTimeout(() => {
       if (!window.OverlayPluginApi) {
-        window.FF14UI.setStatus('浏览器预览', 'preview');
+        window.FF14UI.setGameConnectionStatus?.(false);
       }
     }, 1800);
   }

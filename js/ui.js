@@ -71,6 +71,8 @@
     els.searchClearBtn = document.getElementById('searchClearBtn');
     els.systemPromptBtn = document.getElementById('systemPromptBtn');
     els.status = document.getElementById('status');
+    els.statusMain = document.getElementById('statusMain');
+    els.statusCharacter = document.getElementById('statusCharacter');
     els.emptyState = document.getElementById('emptyState');
     els.emptyTitle = document.getElementById('emptyTitle');
     els.emptySubtitle = document.getElementById('emptySubtitle');
@@ -1783,9 +1785,29 @@
 
   function setStatus(text, mode = '') {
     if (!els.status) return;
-    els.status.textContent = text;
-    els.status.classList.remove('status-connected', 'status-connecting', 'status-preview', 'status-error');
+    if (els.statusMain) els.statusMain.textContent = text;
+    else els.status.textContent = text;
+    els.status.classList.remove('status-connected', 'status-disconnected', 'status-connecting', 'status-preview', 'status-error');
     if (mode) els.status.classList.add(`status-${mode}`);
+  }
+
+  function setGameConnectionStatus(connected, player = {}) {
+    if (!els.status) return;
+    const isConnected = Boolean(connected);
+    const name = String(player?.name || '').trim();
+    setStatus(isConnected ? '游戏已连接' : '游戏未连接', isConnected ? 'connected' : 'disconnected');
+
+    if (els.statusCharacter) {
+      if (isConnected && name) {
+        els.statusCharacter.textContent = `当前角色：${name}（ID）`;
+        els.statusCharacter.classList.remove('hidden');
+        els.status.title = `游戏已连接\n当前角色：${name}（ID）`;
+      } else {
+        els.statusCharacter.textContent = '';
+        els.statusCharacter.classList.add('hidden');
+        els.status.title = '游戏未连接';
+      }
+    }
   }
 
   function setOverlayCollapsed(collapsed) {
@@ -2226,6 +2248,6 @@
   window.FF14UI = {
     init, addMessage, replaceMessages, refreshMetadata,
     showPartyHistory, hidePartyHistory, showPlayerDetail,
-    setStatus, render, getSettings, importSettings, getSelectedDate, notify: showToast,
+    setStatus, setGameConnectionStatus, render, getSettings, importSettings, getSelectedDate, notify: showToast,
   };
 })();

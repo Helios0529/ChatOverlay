@@ -341,30 +341,56 @@ button { color: inherit; }
 }
 .messages::-webkit-scrollbar-corner { background: transparent; }
 
-/* Compact connection state sits in the upper-right, beside Settings. */
+/* Compact game connection state sits in the upper-right, beside Settings. */
 .status {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  flex: 0 0 auto;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(42vw, 310px);
   color: var(--muted);
   font-size: 0.74em;
   white-space: nowrap;
   padding: 0 3px;
 }
-.status::before {
-  content: '';
+.status-dot {
   width: 6px;
   height: 6px;
+  flex: 0 0 6px;
   border-radius: 50%;
   background: rgba(var(--text-rgb), .34);
   box-shadow: 0 0 0 2px rgba(var(--text-rgb), .05);
 }
-.status-connected { color: rgba(var(--text-rgb), .74); }
-.status-connected::before { background: #67D391; box-shadow: 0 0 8px rgba(103,211,145,.46); }
-.status-connecting::before { background: #D9B85E; }
-.status-preview::before { background: #8DA6C7; }
-.status-error::before { background: #E87979; }
+.status-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.12;
+}
+.status-main {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status-character {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: rgba(var(--text-rgb), .48);
+  font-size: .88em;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+}
+.status-connected { color: rgba(var(--text-rgb), .82); }
+.status-connected .status-dot { background: #67D391; box-shadow: 0 0 8px rgba(103,211,145,.46); }
+.status-disconnected { color: rgba(var(--text-rgb), .56); }
+.status-disconnected .status-dot { background: #E87979; box-shadow: 0 0 7px rgba(232,121,121,.28); }
+.status-connecting .status-dot { background: #D9B85E; }
+.status-preview .status-dot { background: #8DA6C7; }
+.status-error .status-dot { background: #E87979; }
 
 /* Per-channel message colors only affect the channel label + body text. */
 .text { color: var(--message-color, rgba(var(--text-rgb), 0.91)); }
